@@ -1,0 +1,55 @@
+export const DASHBOARD_ANALYTICS = {
+  progressHistory: [
+    { day: 'Mon', progress: 42, score: 75 },
+    { day: 'Tue', progress: 48, score: 78 },
+    { day: 'Wed', progress: 54, score: 80 },
+    { day: 'Thu', progress: 60, score: 82 },
+    { day: 'Fri', progress: 65, score: 84 },
+    { day: 'Sat', progress: 68, score: 86 },
+    { day: 'Sun', progress: 68, score: 84 },
+  ],
+  categoryPerformance: [
+    { category: 'Basics', score: 95, target: 80 },
+    { category: 'Superposition', score: 90, target: 80 },
+    { category: 'Gates', score: 75, target: 80 },
+    { category: 'Circuits', score: 60, target: 80 },
+    { category: 'Algorithms', score: 50, target: 80 },
+  ],
+  recentActivity: [
+    {
+      id: 'act-1',
+      title: 'Completed Topic: Superposition & Interference',
+      timestamp: '2 hours ago',
+      type: 'topic',
+      score: '100%',
+    },
+    {
+      id: 'act-2',
+      title: 'Passed Quiz: Single-Qubit Quantum Gates',
+      timestamp: 'Yesterday',
+      type: 'quiz',
+      score: '84%',
+    },
+    {
+      id: 'act-3',
+      title: 'Simulated 2-Qubit Bell State Circuit',
+      timestamp: '2 days ago',
+      type: 'simulator',
+      score: '1000 shots',
+    },
+    {
+      id: 'act-4',
+      title: 'Unlocked Badge: Quantum Explorer',
+      timestamp: '3 days ago',
+      type: 'achievement',
+      score: 'Badge',
+    },
+  ],
+  nextRecommendedTopic: {
+    id: 'multi-qubit-circuits',
+    title: 'Multi-Qubit Gates & Circuit Design',
+    category: 'Circuits',
+    estimatedTime: '40 mins',
+    reason: 'Recommended to address your Circuit Design weak area identified during diagnostic assessment.',
+  },
+}
