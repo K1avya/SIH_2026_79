@@ -1,0 +1,106 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --font-sans: var(--font-inter);
+    --font-heading: var(--font-space-grotesk);
+  }
+
+  .font-heading {
+    font-family: var(--font-heading), system-ui, sans-serif;
+  }
+}
+
+/* Quantum theme palette (self-contained, applied via .quantum wrapper) */
+.quantum {
+  --q-bg: oklch(0.16 0.03 265);
+  --q-bg-deep: oklch(0.11 0.025 265);
+  --q-cyan: oklch(0.78 0.14 200);
+  --q-violet: oklch(0.66 0.19 292);
+  --q-blue: oklch(0.62 0.17 255);
+  --q-text: oklch(0.96 0.01 260);
+  --q-muted: oklch(0.72 0.03 265);
+  --q-line: oklch(1 0 0 / 10%);
+}
+
+@keyframes q-orbit {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes q-orbit-reverse {
+  from {
+    transform: rotate(360deg);
+  }
+  to {
+    transform: rotate(0deg);
+  }
+}
+
+@keyframes q-pulse {
+  0%,
+  100% {
+    opacity: 0.5;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.15);
+  }
+}
+
+@keyframes q-float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+@keyframes q-twinkle {
+  0%,
+  100% {
+    opacity: 0.2;
+  }
+  50% {
+    opacity: 0.9;
+  }
+}
+
+.q-orbit-1 {
+  animation: q-orbit 18s linear infinite;
+}
+
+.q-orbit-2 {
+  animation: q-orbit-reverse 26s linear infinite;
+}
+
+.q-orbit-3 {
+  animation: q-orbit 34s linear infinite;
+}
+
+.q-nucleus {
+  animation: q-pulse 4s ease-in-out infinite;
+}
+
+.q-float {
+  animation: q-float 6s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .q-orbit-1,
+  .q-orbit-2,
+  .q-orbit-3,
+  .q-nucleus,
+  .q-float {
+    animation: none;
+  }
+}
