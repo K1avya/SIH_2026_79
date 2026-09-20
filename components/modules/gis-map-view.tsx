@@ -73,6 +73,54 @@ export function GisMapView() {
     return true
   })
 
+  // Helper function to pick single highest-severity item for capped urgent animations
+  function getTopSeverity<T extends { id: string; severity?: string; status?: string; isAtRisk?: boolean }>(
+    items: T[]
+  ): T | null {
+    if (!items || items.length === 0) return null
+    let top: T | null = null
+    let maxScore = -1
+
+    items.forEach((item) => {
+      let score = 0
+      if (item.severity === 'critical') score = 100
+      else if (item.status === 'blocked') score = 90
+      else if (item.isAtRisk) score = 80
+      else if (item.severity === 'high') score = 70
+      else if (item.status === 'at_risk') score = 50
+      else if (item.severity === 'medium') score = 30
+      else score = 10
+
+      if (score > maxScore) {
+        maxScore = score
+        top = item
+      }
+    })
+
+    return top
+  }
+
+  const activeIncidentsList = incidents.filter((i) => i.status !== 'resolved')
+  const blockedBridgesList = bridges.filter((b) => b.status === 'blocked')
+  const atRiskVehiclesList = vehicles.filter((v) => v.isAtRisk)
+  const blockedRoadsList = filteredRoads.filter((r) => r.status === 'blocked')
+
+  // Identify single highest severity item across all types
+  const topIncident = getTopSeverity(activeIncidentsList)
+  const topBridge = getTopSeverity(blockedBridgesList)
+  const topVehicle = getTopSeverity(atRiskVehiclesList)
+  const topRoad = getTopSeverity(blockedRoadsList)
+
+  // Overall top severity item for single urgent animation on screen
+  const topUrgentId = (() => {
+    if (topIncident && topIncident.severity === 'critical') return `inc-${topIncident.id}`
+    if (topBridge) return `br-${topBridge.id}`
+    if (topIncident) return `inc-${topIncident.id}`
+    if (topVehicle) return `veh-${topVehicle.id}`
+    if (topRoad) return `road-${topRoad.id}`
+    return null
+  })()
+
   return (
     <div className="space-y-4">
       {/* Top Header & Filter Controls (FR-1.3) */}
@@ -368,7 +416,7 @@ export function GisMapView() {
                       filter={`url(#${filterId})`}
                       strokeDasharray={road.status === 'blocked' ? '8 4' : road.status === 'at_risk' ? '12 4' : undefined}
                       fill="none"
-                      className={road.status === 'blocked' ? 'animate-pulse' : undefined}
+                      className={road.status === 'blocked' && topUrgentId === `road-${road.id}` ? 'animate-pulse' : undefined}
                     />
 
                     {/* Road Code Tag at midpoint */}
@@ -410,15 +458,23 @@ export function GisMapView() {
                   const pt = geoToSvg(br.coordinates[0], br.coordinates[1])
                   const isBlocked = br.status === 'blocked'
                   const isAtRisk = br.status === 'at_risk'
+                  const isTopUrgent = topUrgentId === `br-${br.id}`
                   return (
                     <g key={br.id} transform={`translate(${pt[0]}, ${pt[1]})`}>
+                      {isBlocked && isTopUrgent && (
+                        <circle
+                          r="12"
+                          fill="#f43f5e"
+                          className="animate-ping"
+                          opacity="0.7"
+                        />
+                      )}
                       <circle
                         r={isBlocked ? 9 : 7}
                         fill={isBlocked ? '#f43f5e' : isAtRisk ? '#f59e0b' : '#06b6d4'}
                         stroke="#ffffff"
                         strokeWidth="1.5"
-                        className={isBlocked ? 'animate-ping' : undefined}
-                        opacity={isBlocked ? 0.8 : 1}
+                        opacity={isBlocked ? 0.9 : 1}
                       />
                       <circle
                         r={isBlocked ? 7 : 5}
@@ -444,13 +500,14 @@ export function GisMapView() {
               {showVehicles &&
                 vehicles.map((v) => {
                   const pt = geoToSvg(v.lat, v.lng)
+                  const isTopUrgent = topUrgentId === `veh-${v.id}`
                   return (
                     <g
                       key={v.id}
                       transform={`translate(${pt[0]}, ${pt[1]})`}
                       className="cursor-pointer transition-transform hover:scale-125"
                     >
-                      {v.isAtRisk && (
+                      {v.isAtRisk && isTopUrgent && (
                         <circle
                           r="12"
                           fill="rgba(244,63,94,0.3)"
@@ -483,8 +540,22 @@ export function GisMapView() {
                 .filter((i) => i.status !== 'resolved')
                 .map((inc) => {
                   const pt = geoToSvg(inc.lat, inc.lng)
+                  const isTopUrgent = topUrgentId === `inc-${inc.id}`
                   return (
                     <g key={inc.id} transform={`translate(${pt[0]}, ${pt[1]})`}>
+                      {/* Pinging duplicate behind static icon if top urgent */}
+                      {isTopUrgent && (
+                        <rect
+                          x="-10"
+                          y="-10"
+                          width="20"
+                          height="20"
+                          rx="4"
+                          fill="#ef4444"
+                          className="animate-ping"
+                          opacity="0.6"
+                        />
+                      )}
                       <rect
                         x="-7"
                         y="-7"
@@ -494,7 +565,6 @@ export function GisMapView() {
                         fill="#ef4444"
                         stroke="#ffffff"
                         strokeWidth="1"
-                        className="animate-bounce"
                       />
                       <text
                         x="0"

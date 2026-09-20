@@ -18,6 +18,7 @@ import {
   Clock,
 } from 'lucide-react'
 import { useLogistics } from '@/context/logistics-context'
+import { Skeleton } from '@/components/ui/Skeleton'
 
 export function AdminDashboard() {
   const {
@@ -31,6 +32,45 @@ export function AdminDashboard() {
     setActiveModule,
     t,
   } = useLogistics()
+
+  const [isLoading, setIsLoading] = React.useState(false)
+
+  // Helper function to pick single highest severity item
+  function getTopSeverity<T extends { id?: string; severity?: string; status?: string; isAtRisk?: boolean }>(
+    items: T[]
+  ): T | null {
+    if (!items || items.length === 0) return null
+    let top: T | null = null
+    let maxScore = -1
+
+    items.forEach((item) => {
+      let score = 0
+      if (item.severity === 'critical') score = 100
+      else if (item.status === 'blocked') score = 90
+      else if (item.isAtRisk) score = 80
+      else if (item.severity === 'high') score = 70
+      else if (item.status === 'at_risk') score = 50
+      else if (item.severity === 'medium') score = 30
+      else score = 10
+
+      if (score > maxScore) {
+        maxScore = score
+        top = item
+      }
+    })
+
+    return top
+  }
+
+  // Cap simultaneous urgent animations per view to single highest severity item
+  const topUrgentAdminId = React.useMemo(() => {
+    if (emergencyMode) return 'emergency'
+    const topInc = getTopSeverity(incidents.filter((i) => i.status !== 'resolved'))
+    if (topInc && topInc.severity === 'critical') return `inc-${topInc.id}`
+    const topVeh = getTopSeverity(vehicles.filter((v) => v.isAtRisk))
+    if (topVeh) return `veh-${topVeh.id}`
+    return null
+  }, [emergencyMode, incidents, vehicles])
 
   const totalRoadsKm = roads.reduce((acc, r) => acc + r.lengthKm, 0)
   const openRoadsKm = roads.filter((r) => r.status === 'open').reduce((acc, r) => acc + r.lengthKm, 0)
@@ -87,7 +127,7 @@ export function AdminDashboard() {
             onClick={toggleEmergencyMode}
             className={`flex items-center gap-2 rounded-xl px-4 py-2 text-xs font-semibold transition-all ${
               emergencyMode
-                ? 'bg-rose-600 text-white shadow-[0_0_20px_rgba(244,63,94,0.4)] animate-pulse'
+                ? `bg-rose-600 text-white shadow-[0_0_20px_rgba(244,63,94,0.4)] ${topUrgentAdminId === 'emergency' ? 'animate-pulse' : ''}`
                 : 'border border-rose-500/40 bg-rose-500/10 text-rose-300 hover:bg-rose-500/20'
             }`}
           >
@@ -110,7 +150,7 @@ export function AdminDashboard() {
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div className="space-y-1">
               <div className="flex items-center gap-2">
-                <span className="flex h-3 w-3 rounded-full bg-rose-500 animate-ping" />
+                <span className={`flex h-3 w-3 rounded-full bg-rose-500 ${topUrgentAdminId === 'emergency' ? 'animate-ping' : ''}`} />
                 <span className="font-heading text-base font-bold text-rose-300">
                   DISASTER LIFELINE ROUTE PRIORITY ACTIVATED (FR-7.3)
                 </span>
@@ -131,7 +171,16 @@ export function AdminDashboard() {
 
       {/* High-Level KPI Summary Cards */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        {/* KPI 1 */}
+        {isLoading ? (
+          <>
+            <Skeleton className="h-32 w-full" />
+            <Skeleton className="h-32 w-full" />
+            <Skeleton className="h-32 w-full" />
+            <Skeleton className="h-32 w-full" />
+          </>
+        ) : (
+          <>
+            {/* KPI 1 */}
         <div
           className="group relative overflow-hidden rounded-2xl border p-5 transition-all hover:border-[var(--q-cyan)]"
           style={{
@@ -261,7 +310,9 @@ export function AdminDashboard() {
             Carrying Oxygen, PDS rations, POL Fuel & Relief
           </p>
         </div>
-      </div>
+      </>
+    )}
+  </div>
 
       {/* Active Logistics Bottlenecks & Supply-Chain Gaps (FR-7.2) */}
       <div
