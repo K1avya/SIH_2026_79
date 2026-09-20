@@ -24,8 +24,10 @@ import {
 import { useQuantify } from '@/context/quantify-context'
 import { ActiveTab, UserLevel } from '@/types/quantify'
 import { ThemeToggle } from '@/components/theme-toggle'
+import { useScrollPosition } from '@/hooks/useScrollPosition'
 
 export function QuantifyHeader() {
+  const isScrolled = useScrollPosition(20)
   const {
     activeTab,
     setActiveTab,
@@ -53,10 +55,17 @@ export function QuantifyHeader() {
 
   return (
     <header
-      className="sticky top-0 z-50 w-full border-b backdrop-blur-xl"
+      className={`sticky top-0 z-50 w-full border-b transition-all duration-300 ${
+        isScrolled ? 'backdrop-blur-2xl shadow-lg' : 'backdrop-blur-xl'
+      }`}
       style={{
         borderColor: 'var(--q-line)',
-        background: 'color-mix(in oklch, var(--q-bg-deep) 88%, transparent)',
+        background: isScrolled
+          ? 'color-mix(in oklch, var(--q-bg-deep) 92%, transparent)'
+          : 'color-mix(in oklch, var(--q-bg-deep) 88%, transparent)',
+        boxShadow: isScrolled
+          ? '0 8px 32px -8px color-mix(in oklch, var(--q-bg-deep) 80%, transparent)'
+          : 'none',
       }}
     >
       {/* Top Brand & Status Row - spread across window */}
