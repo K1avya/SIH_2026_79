@@ -17,6 +17,7 @@ import {
   Sparkles,
   Send,
 } from 'lucide-react'
+import { toast } from 'sonner'
 import { useLogistics } from '@/context/logistics-context'
 import { IncidentType, RoadSegment } from '@/types/logistics'
 
@@ -95,13 +96,13 @@ export function IncidentReporting() {
     })
 
     if (res.queuedOffline) {
-      setSubmittedFeedback(
-        `OFFLINE REPORT SAVED LOCALLY (FR-6.4): Report for ${gpsCaptured.roadCode} queued in secure offline storage. Will automatically synchronize when network is restored.`
-      )
+      const msg = `Report for ${gpsCaptured.roadCode} queued in secure offline storage. Will automatically synchronize when network is restored.`
+      setSubmittedFeedback(`OFFLINE REPORT SAVED LOCALLY (FR-6.4): ${msg}`)
+      toast.warning('Offline Report Saved Locally', { description: msg })
     } else {
-      setSubmittedFeedback(
-        `INCIDENT SUBMITTED TO CLOUD (FR-6.1): Corridor ${gpsCaptured.roadCode} updated immediately! Public warning dispatched and GIS map marked.`
-      )
+      const msg = `Corridor ${gpsCaptured.roadCode} updated immediately! Public warning dispatched and GIS map marked.`
+      setSubmittedFeedback(`INCIDENT SUBMITTED TO CLOUD (FR-6.1): ${msg}`)
+      toast.success('Incident Submitted Successfully', { description: msg })
     }
 
     setTimeout(() => setSubmittedFeedback(null), 7000)

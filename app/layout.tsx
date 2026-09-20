@@ -3,6 +3,7 @@ import type { Metadata, Viewport } from 'next'
 import { Space_Grotesk, Inter } from 'next/font/google'
 import { AuthProvider } from '@/lib/auth-context'
 import { ThemeProvider } from '@/context/theme-context'
+import { Toaster } from 'sonner'
 import './globals.css'
 
 const spaceGrotesk = Space_Grotesk({
@@ -42,6 +43,7 @@ export default function RootLayout({
       <body className="antialiased font-sans">
         <ThemeProvider>
           <AuthProvider>{children}</AuthProvider>
+          <Toaster position="top-right" richColors closeButton />
         </ThemeProvider>
         {process.env.NODE_ENV === 'production' && <Analytics />}
       </body>

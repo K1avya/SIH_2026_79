@@ -1,6 +1,7 @@
 'use client'
 
 import React, { useState } from 'react'
+import { toast } from 'sonner'
 import {
   Bell,
   AlertOctagon,
@@ -52,6 +53,7 @@ export function AlertsCenter() {
     setSmsPreview(
       `[NIC/MDoNER SMS GATEWAY SIMULATION] To: Registered Drivers & District Magistrate (${alert.district})\n\n${alert.title}\n${alert.message}\nTime: ${alert.timestamp} IST. Avoid affected corridors.`
     )
+    toast.success(`SMS Broadcast dispatched to ${alert.district} magistrate & drivers`)
     setTimeout(() => setSmsPreview(null), 8000)
   }
 
@@ -82,8 +84,11 @@ export function AlertsCenter() {
 
         <div className="flex items-center gap-3">
           <button
-            onClick={markAllAlertsRead}
-            className="rounded-xl border px-3.5 py-2 text-xs font-semibold text-zinc-300 hover:border-cyan-400 transition-colors"
+            onClick={() => {
+              markAllAlertsRead()
+              toast.info('All alerts marked as read')
+            }}
+            className="rounded-xl border px-3.5 py-2 text-xs font-semibold text-zinc-300 hover:border-cyan-400 active:scale-95 transition-all"
             style={{ borderColor: 'var(--q-line)', background: 'color-mix(in oklch, var(--q-bg-deep) 70%, transparent)' }}
           >
             Mark All Read
@@ -301,8 +306,11 @@ export function AlertsCenter() {
 
                   {!alt.isResolved && (
                     <button
-                      onClick={() => resolveAlert(alt.id)}
-                      className="flex items-center gap-1.5 rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-emerald-500 transition-colors"
+                      onClick={() => {
+                        resolveAlert(alt.id)
+                        toast.success(`Alert "${alt.title}" marked as resolved`)
+                      }}
+                      className="flex items-center gap-1.5 rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-emerald-500 active:scale-95 transition-all"
                     >
                       <Check className="h-3.5 w-3.5" />
                       <span>Resolve Alert</span>

@@ -1,6 +1,7 @@
 'use client'
 
 import React, { useState } from 'react'
+import { toast } from 'sonner'
 import {
   Atom,
   Lock,
@@ -40,9 +41,13 @@ export function QuantifyAuth() {
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
-    if (!email.trim() || !password.trim()) return
+    if (!email.trim() || !password.trim()) {
+      toast.error('Please enter both email and password.')
+      return
+    }
 
     login(email, selectedRole, name || undefined)
+    toast.success(`Authenticated successfully as ${selectedRole.toUpperCase()}!`)
     setAuthSuccessNotice(`Authenticated successfully as ${selectedRole.toUpperCase()}!`)
     setTimeout(() => setAuthSuccessNotice(null), 3000)
   }
@@ -59,13 +64,18 @@ export function QuantifyAuth() {
       setSelectedRole('learner')
       login('learner@quantify.edu', 'learner', 'Ada Lovelace')
     }
+    toast.success(`Signed in with 1-Click Demo as ${role.toUpperCase()}!`)
     setAuthSuccessNotice(`Signed in with 1-Click Demo Credentials as ${role.toUpperCase()}!`)
     setTimeout(() => setAuthSuccessNotice(null), 3000)
   }
 
   function handleForgotSubmit(e: React.FormEvent) {
     e.preventDefault()
-    if (!forgotEmail.trim()) return
+    if (!forgotEmail.trim()) {
+      toast.error('Please enter a valid email address.')
+      return
+    }
+    toast.success(`Password reset link dispatched to ${forgotEmail}`)
     setForgotSubmitted(true)
     setTimeout(() => {
       setForgotSubmitted(false)
