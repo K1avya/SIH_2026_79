@@ -1,24 +1,15 @@
 import React from 'react'
+import { Skeleton } from './Skeleton'
 
-export function LoadingState({ message = 'Loading quantum state...' }: { message?: string }) {
+export function LoadingState({ message = 'Loading data...' }: { message?: string }) {
   return (
-    <div className="flex flex-col items-center justify-center p-12 text-center">
-      <div className="relative mb-4 flex h-12 w-12 items-center justify-center">
-        <div
-          className="absolute inset-0 animate-spin rounded-full border-2 border-t-transparent"
-          style={{
-            borderColor: 'var(--q-cyan)',
-            borderTopColor: 'transparent',
-          }}
-        />
-        <div
-          className="h-5 w-5 rounded-full"
-          style={{
-            background: 'linear-gradient(135deg, var(--q-cyan), var(--q-violet))',
-          }}
-        />
+    <div className="w-full space-y-4 p-4">
+      <Skeleton className="h-28 w-full" />
+      <div className="grid gap-4 md:grid-cols-2">
+        <Skeleton className="h-40 w-full" />
+        <Skeleton className="h-40 w-full" />
       </div>
-      <p className="text-sm font-medium animate-pulse" style={{ color: 'var(--q-muted)' }}>
+      <p className="text-center text-xs font-medium text-zinc-400">
         {message}
       </p>
     </div>
