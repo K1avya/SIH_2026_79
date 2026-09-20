@@ -20,6 +20,7 @@ import {
 } from 'lucide-react'
 import { useLogistics } from '@/context/logistics-context'
 import { TrackedVehicle, VehicleCargo, VehicleStatus } from '@/types/logistics'
+import { Skeleton } from '@/components/ui/Skeleton'
 
 export function VehicleTracking() {
   const {
@@ -33,9 +34,12 @@ export function VehicleTracking() {
   const [cargoFilter, setCargoFilter] = useState<string>('all')
   const [pingingId, setPingingId] = useState<string | null>(null)
   const [dispatchedNotice, setDispatchedNotice] = useState<string | null>(null)
+  const [isLoading, setIsLoading] = useState<boolean>(false)
 
   function handlePulse() {
+    setIsLoading(true)
     simulateVehiclePulse()
+    setTimeout(() => setIsLoading(false), 500)
   }
 
   function handleDispatchReroute(veh: TrackedVehicle) {
@@ -199,9 +203,17 @@ export function VehicleTracking() {
 
       {/* Vehicles Grid */}
       <div className="grid gap-4 md:grid-cols-2">
-        {filteredVehicles.map((veh) => {
-          const isAtRisk = veh.isAtRisk
-          const isDelayed = veh.status === 'delayed'
+        {isLoading ? (
+          <>
+            <Skeleton className="h-48 w-full" />
+            <Skeleton className="h-48 w-full" />
+            <Skeleton className="h-48 w-full" />
+            <Skeleton className="h-48 w-full" />
+          </>
+        ) : (
+          filteredVehicles.map((veh) => {
+            const isAtRisk = veh.isAtRisk
+            const isDelayed = veh.status === 'delayed'
 
           return (
             <div
@@ -306,7 +318,7 @@ export function VehicleTracking() {
               </div>
             </div>
           )
-        })}
+        )}
       </div>
     </div>
   )

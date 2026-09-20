@@ -19,6 +19,7 @@ import {
 } from 'lucide-react'
 import { useLogistics } from '@/context/logistics-context'
 import { AlertNotification, AlertSeverity, Language } from '@/types/logistics'
+import { Skeleton } from '@/components/ui/Skeleton'
 
 export function AlertsCenter() {
   const {
@@ -34,6 +35,7 @@ export function AlertsCenter() {
   const [resolutionFilter, setResolutionFilter] = useState<string>('all')
   const [districtFilter, setDistrictFilter] = useState<string>('all')
   const [smsPreview, setSmsPreview] = useState<string | null>(null)
+  const [isLoading, setIsLoading] = useState<boolean>(false)
 
   const unreadCount = alerts.filter((a) => !a.isRead).length
   const criticalCount = alerts.filter((a) => a.severity === 'critical' && !a.isResolved).length
@@ -212,23 +214,31 @@ export function AlertsCenter() {
 
       {/* Alerts Feed */}
       <div className="space-y-3">
-        {filteredAlerts.map((alt) => {
-          const isCritical = alt.severity === 'critical'
-          const isWarning = alt.severity === 'warning'
+        {isLoading ? (
+          <div className="space-y-3">
+            {[1, 2, 3, 4].map((i) => (
+              <Skeleton key={i} className="h-28 w-full" />
+            ))}
+          </div>
+        ) : (
+          filteredAlerts.map((alt, index) => {
+            const isCritical = alt.severity === 'critical'
+            const isWarning = alt.severity === 'warning'
 
-          return (
-            <div
-              key={alt.id}
-              className={`rounded-2xl border p-5 transition-all ${
-                !alt.isResolved && isCritical
-                  ? 'border-rose-500/60 bg-rose-950/20 shadow-[0_0_25px_rgba(244,63,94,0.15)]'
-                  : 'hover:border-zinc-700'
-              }`}
-              style={{
-                borderColor: !alt.isResolved && isCritical ? 'rgba(244,63,94,0.6)' : 'var(--q-line)',
-                background: 'color-mix(in oklch, var(--q-bg-deep) 65%, transparent)',
-              }}
-            >
+            return (
+              <div
+                key={alt.id}
+                className={`animate-fade-in rounded-2xl border p-5 transition-all ${
+                  !alt.isResolved && isCritical
+                    ? 'border-rose-500/60 bg-rose-950/20 shadow-[0_0_25px_rgba(244,63,94,0.15)]'
+                    : 'hover:border-zinc-700'
+                }`}
+                style={{
+                  animationDelay: `${index * 60}ms`,
+                  borderColor: !alt.isResolved && isCritical ? 'rgba(244,63,94,0.6)' : 'var(--q-line)',
+                  background: 'color-mix(in oklch, var(--q-bg-deep) 65%, transparent)',
+                }}
+              >
               <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
                 <div className="space-y-1.5 flex-1">
                   <div className="flex flex-wrap items-center gap-2">
@@ -302,7 +312,7 @@ export function AlertsCenter() {
               </div>
             </div>
           )
-        })}
+        )}
       </div>
     </div>
   )

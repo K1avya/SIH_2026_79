@@ -402,11 +402,12 @@ export function IncidentReporting() {
         </div>
 
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          {incidents.map((inc) => (
+          {incidents.map((inc, index) => (
             <div
               key={inc.id}
-              className="rounded-xl border p-4 transition-colors"
+              className="animate-fade-in rounded-xl border p-4 transition-colors"
               style={{
+                animationDelay: `${index * 60}ms`,
                 borderColor: inc.severity === 'critical' ? 'rgba(244,63,94,0.5)' : 'var(--q-line)',
                 background: inc.severity === 'critical' ? 'rgba(244,63,94,0.08)' : 'color-mix(in oklch, var(--q-bg) 80%, transparent)',
               }}
