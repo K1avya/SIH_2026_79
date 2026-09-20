@@ -3,49 +3,33 @@
 import React, { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { Check, ArrowRight, ArrowLeft, HelpCircle, Loader2, Sparkles } from 'lucide-react'
-import { ASSESSMENT_QUESTIONS, AssessmentQuestion } from '@/lib/mock/assessment'
-import { submitAssessmentServer } from '@/lib/api/assessment'
-import { supabase } from '@/backend/supabase-client'
+import {
+  AssessmentQuestion,
+  FALLBACK_ASSESSMENT_QUESTIONS,
+  fetchAssessmentQuestionsServer,
+  submitAssessmentServer,
+} from '@/lib/api/assessment'
 import { useAuth } from '@/lib/auth-context'
 import { AppShell } from '@/components/layout/AppShell'
 
 export default function AssessmentPage() {
   const router = useRouter()
   const { user, setAssessmentResults } = useAuth()
-  const [questions, setQuestions] = useState<AssessmentQuestion[]>(ASSESSMENT_QUESTIONS)
+  const [questions, setQuestions] = useState<AssessmentQuestion[]>(FALLBACK_ASSESSMENT_QUESTIONS)
   const [currentIndex, setCurrentIndex] = useState(0)
   const [answers, setAnswers] = useState<Record<string, string>>({})
   const [submitting, setSubmitting] = useState(false)
   const [loadingQuestions, setLoadingQuestions] = useState(false)
 
-  // Fetch real diagnostic questions from database / Edge Function
+  // Fetch real diagnostic questions from database API
   useEffect(() => {
     async function loadQuestions() {
       setLoadingQuestions(true)
       try {
-        const { data, error } = await supabase
-          .from('assessment_questions')
-          .select('*')
-          .order('sequenceOrder', { ascending: true })
-
-        if (!error && data && data.length > 0) {
-          const mapped: AssessmentQuestion[] = data.map((q: any, idx: number) => {
-            const opts = Array.isArray(q.options) ? q.options : []
-            const correctOpt = opts.find((o: any) => o.isCorrect)
-            return {
-              id: idx + 1,
-              category: q.category.charAt(0).toUpperCase() + q.category.slice(1),
-              difficulty: (q.difficulty.charAt(0).toUpperCase() + q.difficulty.slice(1)) as any,
-              question: q.questionText,
-              options: opts.map((o: any) => ({ id: o.id, text: o.text })),
-              correctAnswer: correctOpt?.id || 'opt-1',
-              explanation: q.explanation,
-            }
-          })
-          setQuestions(mapped)
+        const { data } = await fetchAssessmentQuestionsServer()
+        if (data && data.length > 0) {
+          setQuestions(data)
         }
-      } catch (err) {
-        console.warn('Using baseline diagnostic questions:', err)
       } finally {
         setLoadingQuestions(false)
       }

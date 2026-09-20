@@ -14,54 +14,21 @@ import {
   CheckCircle2,
   Sparkles,
 } from 'lucide-react'
-import { ACHIEVEMENTS, Achievement } from '@/lib/mock/achievements'
-import { supabase } from '@/backend/supabase-client'
+import { Achievement, FALLBACK_ACHIEVEMENTS, fetchAchievementsServer } from '@/lib/api/achievements'
 import { useAuth } from '@/lib/auth-context'
 import { AppShell } from '@/components/layout/AppShell'
 
 export default function AchievementsPage() {
   const { user } = useAuth()
-  const [badges, setBadges] = useState<Achievement[]>(ACHIEVEMENTS)
+  const [badges, setBadges] = useState<Achievement[]>(FALLBACK_ACHIEVEMENTS)
   const [activeCategory, setActiveCategory] = useState<string>('All')
 
-  // Fetch real master achievements and user unlock state from Supabase
+  // Fetch real master achievements and user unlock state from Supabase API
   useEffect(() => {
     async function loadAchievements() {
-      try {
-        const [achieveRes, userAchieveRes] = await Promise.all([
-          supabase.from('achievements').select('*'),
-          supabase.from('user_achievements').select('*').eq('user_id', user.id),
-        ])
-
-        if (!achieveRes.error && achieveRes.data && achieveRes.data.length > 0) {
-          const userEarnedMap = new Map<string, { isEarned: boolean; earnedAt?: string; progress?: number }>()
-          if (userAchieveRes.data) {
-            userAchieveRes.data.forEach((ua: any) => {
-              userEarnedMap.set(ua.achievementId, {
-                isEarned: ua.isEarned,
-                earnedAt: ua.earnedAt ? new Date(ua.earnedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : undefined,
-                progress: ua.progress,
-              })
-            })
-          }
-
-          const mapped: Achievement[] = achieveRes.data.map((b: any) => {
-            const userEarned = userEarnedMap.get(b.id)
-            const isUnlocked = userEarned?.isEarned || user.unlockedBadges.includes(b.id)
-            return {
-              id: b.id,
-              title: b.title,
-              description: b.description,
-              iconName: b.icon,
-              unlocked: isUnlocked,
-              unlockedAt: userEarned?.earnedAt || (isUnlocked ? 'Earned' : undefined),
-              category: b.category as any,
-            }
-          })
-          setBadges(mapped)
-        }
-      } catch (err) {
-        console.warn('Using mock achievements fallback:', err)
+      const { data } = await fetchAchievementsServer(user.id, user.unlockedBadges)
+      if (data && data.length > 0) {
+        setBadges(data)
       }
     }
 

@@ -4,9 +4,12 @@ import React, { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { useParams, useRouter } from 'next/navigation'
 import { Check, X, ArrowRight, RotateCcw, Award, CheckCircle2, HelpCircle, Loader2 } from 'lucide-react'
-import { MOCK_QUIZZES, QuizQuestion } from '@/lib/mock/quiz'
-import { submitQuizServer } from '@/lib/api/quiz'
-import { supabase } from '@/backend/supabase-client'
+import {
+  QuizQuestion,
+  FALLBACK_QUIZZES,
+  fetchQuizQuestionsServer,
+  submitQuizServer,
+} from '@/lib/api/quiz'
 import { useAuth } from '@/lib/auth-context'
 import { AppShell } from '@/components/layout/AppShell'
 
@@ -16,7 +19,7 @@ export default function QuizPage() {
   const { user, markTopicCompleted } = useAuth()
   const topicId = (params?.id as string) || 'qubits'
 
-  const fallbackQuiz = MOCK_QUIZZES[topicId] || MOCK_QUIZZES['default']
+  const fallbackQuiz = FALLBACK_QUIZZES[topicId] || FALLBACK_QUIZZES['default']
   const [topicTitle, setTopicTitle] = useState(fallbackQuiz.topicTitle)
   const [questions, setQuestions] = useState<QuizQuestion[]>(fallbackQuiz.questions)
   const [selectedAnswers, setSelectedAnswers] = useState<Record<number, number>>({})
@@ -25,31 +28,12 @@ export default function QuizPage() {
   const [scorePercent, setScorePercent] = useState<number>(0)
   const [correctAnswersMap, setCorrectAnswersMap] = useState<Record<number, number>>({})
 
-  // Fetch quiz questions from Supabase database
+  // Fetch quiz questions from Supabase database API
   useEffect(() => {
     async function loadQuizQuestions() {
-      try {
-        const { data, error } = await supabase
-          .from('quiz_questions')
-          .select('*')
-          .eq('topicId', topicId)
-
-        if (!error && data && data.length > 0) {
-          const mappedQuestions: QuizQuestion[] = data.map((q: any, idx: number) => {
-            const opts = Array.isArray(q.options) ? q.options : []
-            const correctIdx = opts.findIndex((o: any) => o.isCorrect)
-            return {
-              id: idx + 1,
-              question: q.questionText,
-              options: opts.map((o: any) => o.text),
-              correctIndex: correctIdx >= 0 ? correctIdx : 0,
-              explanation: q.explanation,
-            }
-          })
-          setQuestions(mappedQuestions)
-        }
-      } catch (err) {
-        console.warn('Using mock quiz questions:', err)
+      const { data } = await fetchQuizQuestionsServer(topicId)
+      if (data && data.length > 0) {
+        setQuestions(data)
       }
     }
 

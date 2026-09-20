@@ -30,10 +30,11 @@ import {
   GATE_PALETTE,
   PRESET_CIRCUITS,
   PlacedGate,
-  simulateCircuitMock,
+  simulateCircuitClient,
   SimulationOutput,
-} from '@/lib/mock/simulator'
-import { saveCircuitServer, simulateCircuitWithQiskit } from '@/lib/api/circuits'
+  saveCircuitServer,
+  simulateCircuitWithQiskit,
+} from '@/lib/api/circuits'
 import { useAuth } from '@/lib/auth-context'
 import { AppShell } from '@/components/layout/AppShell'
 
@@ -49,7 +50,7 @@ export default function SimulatorPage() {
   const [savedSuccess, setSavedSuccess] = useState(false)
   const [circuitTitle, setCircuitTitle] = useState('Bell State Circuit')
   const [results, setResults] = useState<SimulationOutput | null>(
-    simulateCircuitMock(PRESET_CIRCUITS[0].gates, 2, 'Qiskit Aer', 1000)
+    simulateCircuitClient(PRESET_CIRCUITS[0].gates, 2, 'Qiskit Aer', 1000)
   )
 
   const handleCellClick = (qubitIndex: number, stepIndex: number) => {
@@ -75,14 +76,14 @@ export default function SimulatorPage() {
 
     try {
       // Execute via local matrix simulator + optional cloud Qiskit
-      const res = simulateCircuitMock(placedGates, qubitsCount, backend, shots)
+      const res = simulateCircuitClient(placedGates, qubitsCount, backend, shots)
       setResults(res)
 
       // Background async call to cloud Qiskit simulator for verification
       simulateCircuitWithQiskit(qubitsCount, placedGates, shots).catch(() => {})
     } catch (err) {
       console.warn('Simulation execution fallback:', err)
-      const res = simulateCircuitMock(placedGates, qubitsCount, backend, shots)
+      const res = simulateCircuitClient(placedGates, qubitsCount, backend, shots)
       setResults(res)
     } finally {
       setSimulating(false)
@@ -127,7 +128,7 @@ export default function SimulatorPage() {
     setQubitsCount(preset.qubitsCount)
     setPlacedGates(preset.gates)
     setCircuitTitle(preset.title)
-    setResults(simulateCircuitMock(preset.gates, preset.qubitsCount, backend, shots))
+    setResults(simulateCircuitClient(preset.gates, preset.qubitsCount, backend, shots))
   }
 
   return (

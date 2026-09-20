@@ -15,44 +15,25 @@ import {
   X,
   Sparkles,
 } from 'lucide-react'
-import { RESOURCES, LearningResource } from '@/lib/mock/resources'
-import { supabase } from '@/backend/supabase-client'
+import { LearningResource, FALLBACK_RESOURCES, fetchResourcesServer } from '@/lib/api/resources'
 import { useAuth } from '@/lib/auth-context'
 import { AppShell } from '@/components/layout/AppShell'
 import { EmptyState } from '@/components/ui/EmptyState'
 
 export default function ResourcesPage() {
   const { user, toggleBookmarkResource } = useAuth()
-  const [resources, setResources] = useState<LearningResource[]>(RESOURCES)
+  const [resources, setResources] = useState<LearningResource[]>(FALLBACK_RESOURCES)
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedType, setSelectedType] = useState<string>('All')
   const [selectedLevel, setSelectedLevel] = useState<string>('All')
   const [previewResource, setPreviewResource] = useState<LearningResource | null>(null)
 
-  // Fetch real resources from Supabase database
+  // Fetch real resources from Supabase database API
   useEffect(() => {
     async function loadResources() {
-      try {
-        const { data, error } = await supabase
-          .from('resources')
-          .select('*')
-
-        if (!error && data && data.length > 0) {
-          const mapped: LearningResource[] = data.map((r: any) => ({
-            id: r.id,
-            title: r.title,
-            type: r.type.charAt(0).toUpperCase() + r.type.slice(1) as any,
-            topic: r.topicName || 'Quantum Basics',
-            level: r.level.charAt(0).toUpperCase() + r.level.slice(1) as any,
-            url: r.url,
-            duration: r.durationOrPages || '20 mins',
-            description: r.description,
-            author: 'Quantum Science Institute',
-          }))
-          setResources(mapped)
-        }
-      } catch (err) {
-        console.warn('Using mock resources:', err)
+      const { data } = await fetchResourcesServer()
+      if (data && data.length > 0) {
+        setResources(data)
       }
     }
 

@@ -14,8 +14,7 @@ import {
   HelpCircle,
   Loader2,
 } from 'lucide-react'
-import { TOPICS } from '@/lib/mock/topics'
-import { fetchLearningPathServer, LearningPathItem } from '@/lib/api/learning-path'
+import { fetchLearningPathServer, getFallbackLearningPath, LearningPathItem } from '@/lib/api/learning-path'
 import { useAuth } from '@/lib/auth-context'
 import { AppShell } from '@/components/layout/AppShell'
 
@@ -28,40 +27,15 @@ export default function LearningPathPage() {
     async function loadPath() {
       setLoading(true)
       try {
-        const { data } = await fetchLearningPathServer(user.id)
+        const { data } = await fetchLearningPathServer(user.id, user.completedTopics, user.weakTopics)
         if (data && data.length > 0) {
           setPathItems(data)
         } else {
-          // Fallback to TOPICS mock mapped to LearningPathItem
-          const defaultItems: LearningPathItem[] = TOPICS.map((t: any, idx: number) => ({
-            id: `path-${t.id}`,
-            topicId: t.id,
-            topic: {
-              id: t.id,
-              category: t.category.toLowerCase() as any,
-              name: t.title,
-              level: t.difficulty.toLowerCase() as any,
-              sequenceOrder: t.order,
-              description: t.description,
-              theoryContent: t.content?.theory || '',
-              videoUrl: t.content?.videoUrl || '',
-              videoDuration: t.estimatedTime || '25 mins',
-              notesUrl: t.content?.notesUrl || '',
-              practiceQuestionsCount: t.content?.practiceQuestions?.length || 5,
-              keyFormulas: [],
-            },
-            status: user.completedTopics.includes(t.id)
-              ? 'completed'
-              : idx <= user.completedTopics.length
-              ? 'in_progress'
-              : 'locked',
-            sequenceOrder: t.order,
-            isWeakPriority: user.weakTopics.some((w) => t.category.toLowerCase().includes(w.toLowerCase())),
-          }))
-          setPathItems(defaultItems)
+          setPathItems(getFallbackLearningPath(user.completedTopics, user.weakTopics))
         }
       } catch (err) {
-        console.warn('Using mock learning path topics:', err)
+        console.warn('Using fallback learning path topics:', err)
+        setPathItems(getFallbackLearningPath(user.completedTopics, user.weakTopics))
       } finally {
         setLoading(false)
       }

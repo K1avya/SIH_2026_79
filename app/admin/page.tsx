@@ -17,8 +17,17 @@ import {
   Check,
   Loader2,
 } from 'lucide-react'
-import { ADMIN_METRICS, ADMIN_USERS, ADMIN_QUESTIONS, AdminMetric, AdminUserRecord, AdminQuestionRecord } from '@/lib/mock/admin'
-import { fetchAdminStatsServer, fetchAdminQuestionsServer, createAdminQuestionServer, deleteAdminQuestionServer } from '@/lib/api/admin'
+import {
+  fetchAdminStatsServer,
+  fetchAdminQuestionsServer,
+  createAdminQuestionServer,
+  deleteAdminQuestionServer,
+  AdminMetric,
+  AdminUserRecord,
+  AdminQuestionItem,
+  FALLBACK_ADMIN_METRICS,
+  FALLBACK_ADMIN_QUESTIONS,
+} from '@/lib/api/admin'
 import { useAuth } from '@/lib/auth-context'
 import { AppShell } from '@/components/layout/AppShell'
 
@@ -28,10 +37,10 @@ export default function AdminDashboardPage() {
   const [searchQuery, setSearchQuery] = useState('')
   const [showAddModal, setShowAddModal] = useState(false)
   
-  // Real API state with mock fallbacks for seamless offline demo
-  const [metrics, setMetrics] = useState<AdminMetric[]>(ADMIN_METRICS)
-  const [usersList, setUsersList] = useState<AdminUserRecord[]>(ADMIN_USERS)
-  const [questionsList, setQuestionsList] = useState<AdminQuestionRecord[]>(ADMIN_QUESTIONS)
+  // Real API state connected to Supabase Edge Functions
+  const [metrics, setMetrics] = useState<AdminMetric[]>(FALLBACK_ADMIN_METRICS)
+  const [usersList, setUsersList] = useState<AdminUserRecord[]>([])
+  const [questionsList, setQuestionsList] = useState<AdminQuestionItem[]>(FALLBACK_ADMIN_QUESTIONS)
   const [loading, setLoading] = useState(false)
   
   // New question form state
@@ -58,7 +67,7 @@ export default function AdminDashboardPage() {
           setUsersList(statsRes.data.recentUsers as any)
         }
         if (questionsRes.data && questionsRes.data.length > 0) {
-          const mappedQuestions: AdminQuestionRecord[] = questionsRes.data.map((q, idx) => {
+          const mappedQuestions: AdminQuestionItem[] = questionsRes.data.map((q, idx) => {
             const correctOpt = q.options?.find((o: any) => o.isCorrect)
             return {
               id: idx + 1,

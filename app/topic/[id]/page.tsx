@@ -17,8 +17,7 @@ import {
   Layers,
   ChevronRight,
 } from 'lucide-react'
-import { TOPICS, Topic } from '@/lib/mock/topics'
-import { supabase } from '@/backend/supabase-client'
+import { Topic, FALLBACK_TOPICS, fetchTopicByIdServer } from '@/lib/api/topics'
 import { useAuth } from '@/lib/auth-context'
 import { AppShell } from '@/components/layout/AppShell'
 
@@ -29,50 +28,17 @@ export default function TopicLearningPage() {
   const topicId = (params?.id as string) || 'qubits'
 
   const [currentTopic, setCurrentTopic] = useState<Topic>(
-    TOPICS.find((t) => t.id === topicId) || TOPICS[1]
+    FALLBACK_TOPICS.find((t) => t.id === topicId) || FALLBACK_TOPICS[1]
   )
   const [activeTab, setActiveTab] = useState<'theory' | 'visual' | 'video' | 'practice'>('theory')
   const [showHint, setShowHint] = useState<Record<number, boolean>>({})
 
-  // Fetch topic from database if available
+  // Fetch topic from database API
   useEffect(() => {
     async function loadTopic() {
-      try {
-        const { data, error } = await supabase
-          .from('topics')
-          .select('*')
-          .eq('id', topicId)
-          .maybeSingle()
-
-        if (!error && data) {
-          const fallback = TOPICS.find((t) => t.id === topicId) || TOPICS[0]
-          setCurrentTopic({
-            id: data.id,
-            title: data.name || fallback.title,
-            category: (data.category.charAt(0).toUpperCase() + data.category.slice(1)) as any,
-            difficulty: (data.level.charAt(0).toUpperCase() + data.level.slice(1)) as any,
-            estimatedTime: data.videoDuration || fallback.estimatedTime,
-            description: data.description || fallback.description,
-            status: user.completedTopics.includes(data.id) ? 'Completed' : 'In Progress',
-            order: data.sequenceOrder || fallback.order,
-            prerequisites: fallback.prerequisites || [],
-            content: {
-              overview: data.description || fallback.content.overview,
-              learningObjectives: fallback.content.learningObjectives || [],
-              theory: data.theoryContent || fallback.content.theory,
-              visualExplanation: fallback.content.visualExplanation || {
-                type: 'concept',
-                title: 'Quantum State Representation',
-                details: 'Interactive visual state visualization.',
-              },
-              videoUrl: data.videoUrl || fallback.content.videoUrl,
-              notesUrl: data.notesUrl || fallback.content.notesUrl,
-              practiceQuestions: fallback.content.practiceQuestions || [],
-            },
-          })
-        }
-      } catch (err) {
-        console.warn('Using mock topic details:', err)
+      const { data } = await fetchTopicByIdServer(topicId, user.completedTopics)
+      if (data) {
+        setCurrentTopic(data)
       }
     }
 

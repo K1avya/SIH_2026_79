@@ -27,7 +27,7 @@ import {
   ResponsiveContainer,
   Cell,
 } from 'recharts'
-import { DASHBOARD_ANALYTICS } from '@/lib/mock/dashboard'
+import { DASHBOARD_ANALYTICS, fetchDashboardAnalyticsServer } from '@/lib/api/dashboard'
 import { fetchLearningPathServer, LearningPathItem } from '@/lib/api/learning-path'
 import { supabase } from '@/backend/supabase-client'
 import { useAuth } from '@/lib/auth-context'
@@ -41,6 +41,12 @@ export default function DashboardPage() {
   useEffect(() => {
     async function loadDashboardData() {
       try {
+        // Fetch dashboard analytics from API
+        const { data: dashData } = await fetchDashboardAnalyticsServer(user.id)
+        if (dashData) {
+          setAnalytics(dashData)
+        }
+
         // Fetch user's personalized learning path from Edge Function
         const { data: pathItems } = await fetchLearningPathServer(user.id)
         if (pathItems && pathItems.length > 0) {

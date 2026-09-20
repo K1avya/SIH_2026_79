@@ -2,48 +2,21 @@
 
 import React, { useState, useEffect } from 'react'
 import { BookMarked, Bookmark, BookmarkCheck, Star, ExternalLink, Sparkles, X, Info } from 'lucide-react'
-import { RECOMMENDED_BOOKS, RecommendedBook } from '@/lib/mock/books'
-import { supabase } from '@/backend/supabase-client'
+import { RecommendedBook, FALLBACK_BOOKS, fetchBooksServer } from '@/lib/api/books'
 import { useAuth } from '@/lib/auth-context'
 import { AppShell } from '@/components/layout/AppShell'
 
 export default function BooksPage() {
   const { user, toggleBookmarkBook } = useAuth()
-  const [books, setBooks] = useState<RecommendedBook[]>(RECOMMENDED_BOOKS)
+  const [books, setBooks] = useState<RecommendedBook[]>(FALLBACK_BOOKS)
   const [activeBook, setActiveBook] = useState<RecommendedBook | null>(null)
 
-  // Fetch curated book recommendations from database
+  // Fetch curated book recommendations from database API
   useEffect(() => {
     async function loadBooks() {
-      try {
-        const { data, error } = await supabase
-          .from('books')
-          .select('*')
-
-        if (!error && data && data.length > 0) {
-          const gradients = [
-            'linear-gradient(135deg, #0284C7, #0F172A)',
-            'linear-gradient(135deg, #7C3AED, #1E1B4B)',
-            'linear-gradient(135deg, #059669, #064E3B)',
-            'linear-gradient(135deg, #D97706, #451A03)',
-          ]
-          const mapped: RecommendedBook[] = data.map((b: any, idx: number) => ({
-            id: b.id,
-            title: b.title,
-            author: b.author,
-            level: (b.levelTag.charAt(0).toUpperCase() + b.levelTag.slice(1)) as any,
-            relatedTopic: b.relatedCategory ? (b.relatedCategory.charAt(0).toUpperCase() + b.relatedCategory.slice(1)) : 'Quantum Computing',
-            whyRecommended: b.whyRecommended,
-            rating: Number(b.rating) || 4.8,
-            pages: b.pages || 450,
-            previewUrl: b.previewUrl || 'https://www.cambridge.org/highereducation/books/quantum-computation-and-quantum-information/01E06DE9559F4B399B6A5E12C85D83AB',
-            coverGradient: gradients[idx % gradients.length],
-            description: b.description || 'Comprehensive quantum mechanics textbook.',
-          }))
-          setBooks(mapped)
-        }
-      } catch (err) {
-        console.warn('Using mock recommended books:', err)
+      const { data } = await fetchBooksServer()
+      if (data && data.length > 0) {
+        setBooks(data)
       }
     }
 

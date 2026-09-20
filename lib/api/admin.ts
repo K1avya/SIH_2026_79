@@ -47,6 +47,73 @@ export interface AdminStatsResponse {
   }>
 }
 
+export interface AdminMetric {
+  title: string
+  value: string
+  change: string
+  trend: 'up' | 'down' | 'neutral'
+  description: string
+}
+
+export interface AdminUserRecord {
+  id: string
+  name: string
+  email: string
+  role: string
+  level: string
+  progress: number
+  streak: number
+  quizAverage: number
+  joinedDate: string
+  status: 'Active' | 'Inactive'
+}
+
+export const FALLBACK_ADMIN_METRICS: AdminMetric[] = [
+  {
+    title: 'Total Learners',
+    value: '1,248',
+    change: '+14.2%',
+    trend: 'up',
+    description: 'Active platform accounts across universities',
+  },
+  {
+    title: 'Avg. Diagnostic Score',
+    value: '6.4 / 10',
+    change: '+0.8',
+    trend: 'up',
+    description: 'Mean initial assessment accuracy across cohorts',
+  },
+  {
+    title: 'Curriculum Completion',
+    value: '68.5%',
+    change: '+5.1%',
+    trend: 'up',
+    description: 'Learners reaching Level 2 (Intermediate) or higher',
+  },
+  {
+    title: 'Circuits Simulated',
+    value: '8,920',
+    change: '+22.4%',
+    trend: 'up',
+    description: 'Quantum statevector and Qiskit executions',
+  },
+]
+
+export interface AdminQuestionItem {
+  id: number
+  category: string
+  question: string
+  correctAnswer: string
+}
+
+export const FALLBACK_ADMIN_QUESTIONS: AdminQuestionItem[] = [
+  { id: 1, category: 'Basics', question: 'What fundamental property distinguishes a qubit from a classical bit?', correctAnswer: 'Option B' },
+  { id: 2, category: 'Basics', question: 'What happens to a qubit state upon measurement?', correctAnswer: 'Option C' },
+  { id: 3, category: 'Qubits & Superposition', question: 'In the Bloch sphere representation, what state is (|0⟩+|1⟩)/√2?', correctAnswer: 'Option C' },
+  { id: 4, category: 'Gates', question: 'Which gate acts as a quantum NOT gate?', correctAnswer: 'Option B' },
+  { id: 5, category: 'Circuits', question: 'Which circuit sequence generates the Bell state?', correctAnswer: 'Option A' },
+]
+
 export interface AssessmentOption {
   id: string
   text: string

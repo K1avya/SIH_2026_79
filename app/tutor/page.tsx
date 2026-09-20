@@ -22,8 +22,8 @@ import {
   INITIAL_CHAT_MESSAGES,
   ChatMessage,
   getMockAIResponse,
-} from '@/lib/mock/tutor'
-import { sendTutorChatMessage } from '@/lib/api/tutor'
+  sendTutorChatMessage,
+} from '@/lib/api/tutor'
 import { useAuth } from '@/lib/auth-context'
 import { AppShell } from '@/components/layout/AppShell'
 
