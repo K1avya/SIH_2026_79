@@ -19,6 +19,7 @@ import {
 } from 'lucide-react'
 import { useLogistics } from '@/context/logistics-context'
 import { ActiveModule, Language, UserRole } from '@/types/logistics'
+import { ThemeToggle } from '@/components/theme-toggle'
 
 export function PlatformHeader() {
   const {
@@ -279,6 +280,9 @@ export function PlatformHeader() {
               </div>
             )}
           </div>
+
+          {/* Theme Toggle */}
+          <ThemeToggle />
         </div>
       </div>
 

@@ -23,6 +23,7 @@ import {
 } from 'lucide-react'
 import { useQuantify } from '@/context/quantify-context'
 import { ActiveTab, UserLevel } from '@/types/quantify'
+import { ThemeToggle } from '@/components/theme-toggle'
 
 export function QuantifyHeader() {
   const {
@@ -137,6 +138,9 @@ export function QuantifyHeader() {
             <Flame className="h-3.5 w-3.5 text-amber-400 fill-amber-400" />
             <span>{streakDays} Days</span>
           </div>
+
+          {/* Theme Toggle */}
+          <ThemeToggle />
 
           {/* User Account / Auth Button */}
           <button

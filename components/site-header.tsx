@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import { useState } from 'react'
 import { Atom, Menu, X } from 'lucide-react'
+import { ThemeToggle } from '@/components/theme-toggle'
 
 const NAV = [
   { label: 'Home', href: '#home' },
@@ -55,6 +56,7 @@ export function SiteHeader() {
           </nav>
 
           <div className="hidden items-center gap-3 md:flex">
+            <ThemeToggle />
             <Link
               href="/login"
               className="text-sm font-medium transition-colors hover:text-[var(--q-cyan)]"
@@ -76,15 +78,17 @@ export function SiteHeader() {
             </Link>
           </div>
 
-          <button
-            type="button"
-            className="md:hidden"
-            onClick={() => setOpen((v) => !v)}
-            aria-label={open ? 'Close menu' : 'Open menu'}
-            aria-expanded={open}
-          >
-            {open ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
-          </button>
+          <div className="flex items-center gap-2 md:hidden">
+            <ThemeToggle />
+            <button
+              type="button"
+              onClick={() => setOpen((v) => !v)}
+              aria-label={open ? 'Close menu' : 'Open menu'}
+              aria-expanded={open}
+            >
+              {open ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+            </button>
+          </div>
         </div>
 
         {open && (
