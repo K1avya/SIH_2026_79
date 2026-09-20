@@ -1,12 +1,20 @@
+'use client'
+
+import React from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { ArrowRight } from 'lucide-react'
+import { useInView } from '@/hooks/useInView'
 
 export function CtaSection() {
+  const { ref, isInView } = useInView<HTMLElement>({ threshold: 0.15 })
+
   return (
-    <section className="mx-auto max-w-6xl px-5 pb-24">
+    <section ref={ref} className="mx-auto max-w-6xl px-5 pb-24">
       <div
-        className="relative overflow-hidden rounded-[2rem] border px-6 py-16 text-center sm:px-12"
+        className={`relative overflow-hidden rounded-[2rem] border px-6 py-16 text-center sm:px-12 transition-all duration-400 ease-out ${
+          isInView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
+        }`}
         style={{ borderColor: 'var(--q-line)' }}
       >
         <Image
@@ -41,7 +49,7 @@ export function CtaSection() {
           <div className="mt-8 flex flex-wrap items-center justify-center gap-4">
             <Link
               href="/login"
-              className="inline-flex items-center gap-2 rounded-full px-7 py-3 text-sm font-semibold transition-transform hover:scale-[1.03]"
+              className="inline-flex items-center gap-2 rounded-full px-7 py-3 text-sm font-semibold transition-all duration-150 hover:scale-[1.03] active:scale-95"
               style={{
                 background:
                   'linear-gradient(135deg, var(--q-cyan), var(--q-violet))',
@@ -55,7 +63,7 @@ export function CtaSection() {
 
             <Link
               href="/login"
-              className="rounded-full border px-7 py-3 text-sm font-semibold transition-colors hover:border-[var(--q-cyan)]"
+              className="rounded-full border px-7 py-3 text-sm font-semibold transition-all duration-150 hover:border-[var(--q-cyan)] active:scale-95"
               style={{ borderColor: 'var(--q-line)' }}
             >
               Sign In

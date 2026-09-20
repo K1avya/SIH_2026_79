@@ -1,5 +1,9 @@
+'use client'
+
+import React from 'react'
 import { Star, Quote } from 'lucide-react'
 import { SectionHeading } from '@/components/section-heading'
+import { useInView } from '@/hooks/useInView'
 
 const TESTIMONIALS = [
   {
@@ -29,24 +33,34 @@ const TESTIMONIALS = [
 ]
 
 export function TestimonialsSection() {
+  const { ref, isInView } = useInView<HTMLElement>({ threshold: 0.15 })
+
   return (
-    <section id="testimonials" className="mx-auto max-w-6xl px-5 py-20 sm:py-28">
-      <SectionHeading
-        eyebrow="Loved by learners"
-        title="What our students say"
-        highlight="about us"
-        description="Thousands of learners rely on Quantica to make sense of the quantum world."
-      />
+    <section ref={ref} id="testimonials" className="mx-auto max-w-6xl px-5 py-20 sm:py-28">
+      <div
+        className={`transition-all duration-400 ease-out ${
+          isInView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
+        }`}
+      >
+        <SectionHeading
+          eyebrow="Loved by learners"
+          title="What our students say"
+          highlight="about us"
+          description="Thousands of learners rely on Quantica to make sense of the quantum world."
+        />
+      </div>
 
       <div className="mt-14 grid gap-6 lg:grid-cols-3">
-        {TESTIMONIALS.map((t) => (
+        {TESTIMONIALS.map((t, idx) => (
           <figure
             key={t.name}
-            className="relative flex flex-col rounded-3xl border p-7"
+            className={`relative flex flex-col rounded-3xl border p-7 transition-all duration-400 ease-out ${
+              isInView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
+            }`}
             style={{
               borderColor: 'var(--q-line)',
-              background:
-                'color-mix(in oklch, var(--q-bg-deep) 55%, transparent)',
+              background: 'color-mix(in oklch, var(--q-bg-deep) 55%, transparent)',
+              transitionDelay: `${(idx + 1) * 80}ms`,
             }}
           >
             <Quote
@@ -76,8 +90,7 @@ export function TestimonialsSection() {
               <span
                 className="flex h-11 w-11 items-center justify-center rounded-full text-sm font-bold"
                 style={{
-                  background:
-                    'linear-gradient(135deg, var(--q-cyan), var(--q-violet))',
+                  background: 'linear-gradient(135deg, var(--q-cyan), var(--q-violet))',
                   color: 'var(--q-bg-deep)',
                 }}
               >
