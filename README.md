@@ -205,6 +205,7 @@ Proudly designed and developed for the **Smart India Hackathon (SIH 2026)**:
 | Avatar | Collaborator | Role & Contribution | Profile |
 | :---: | :--- | :--- | :---: |
 | 🚀 | **Daksh Prajapati** | **Full-Stack Architecture & Backend Engineering**<br>• Designed & deployed all 10 Supabase Edge Functions<br>• Implemented PostgreSQL schema, RLS policies, & achievement triggers<br>• Integrated Python Qiskit Aer & Google Gemini AI Tutor | [@DAKSH-9572](https://github.com/DAKSH-9572) |
+| ⚡ | **Kanak Bharara** | **Backend & Database Engineering**<br>• Database architecture, PostgreSQL schema, & Edge Functions<br>• Data security, RLS policies, & database optimization<br>• Backend service integrations & API endpoints | [@Kaxyaa-Flux](https://github.com/Kaxyaa-Flux) |
 | ⚛️ | **Kavya Chandegara** | **Project Lead & Frontend Engineering**<br>• System architecture & component design<br>• Interactive Quantum Circuit Simulator UI & AppShell<br>• Git repository coordinator & deployment manager | [@K1avya](https://github.com/K1avya) |
 | 📚 | **Dhruv Chaudhary** | **Quantum Content & Educational Engineering**<br>• Curated diagnostic question bank & checkpoint quizzes<br>• Formulated mathematical foundations & textbook recommendations<br>• Quantum Resource Library curation | [@mrdhruv18](https://github.com/mrdhruv18) |
 
