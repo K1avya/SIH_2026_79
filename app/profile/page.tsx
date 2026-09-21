@@ -1,7 +1,8 @@
 'use client'
 
 import React, { useState } from 'react'
-import { User, Mail, GraduationCap, Target, Trophy, Award, Edit3, Check, X } from 'lucide-react'
+import { useRouter } from 'next/navigation'
+import { User, Mail, GraduationCap, Target, Trophy, Award, Edit3, Check, X, LogOut } from 'lucide-react'
 import { useAuth } from '@/lib/auth-context'
 import { AppShell } from '@/components/layout/AppShell'
 
@@ -11,6 +12,7 @@ export default function ProfilePage() {
   const [name, setName] = useState(user.name)
   const [email, setEmail] = useState(user.email)
   const [educationLevel, setEducationLevel] = useState(user.educationLevel)
+  const router = useRouter()
 
   const handleSave = () => {
     updateUser({ name, email, educationLevel })
@@ -46,14 +48,28 @@ export default function ProfilePage() {
             </div>
           </div>
 
-          <button
-            onClick={() => setEditing(true)}
-            className="flex items-center gap-2 rounded-xl border px-4 py-2 text-xs font-semibold text-white hover:bg-white/10 transition-colors"
-            style={{ borderColor: 'var(--q-line)' }}
-          >
-            <Edit3 className="h-4 w-4 text-[var(--q-cyan)]" />
-            <span>Edit Profile</span>
-          </button>
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => setEditing(true)}
+              className="flex items-center gap-2 rounded-xl border px-4 py-2 text-xs font-semibold text-white hover:bg-white/10 transition-colors"
+              style={{ borderColor: 'var(--q-line)' }}
+            >
+              <Edit3 className="h-4 w-4 text-[var(--q-cyan)]" />
+              <span className="hidden sm:inline">Edit Profile</span>
+            </button>
+            <button
+              onClick={async () => {
+                const { supabase } = await import('@/backend/supabase-client')
+                await supabase.auth.signOut()
+                router.push('/login')
+              }}
+              className="flex items-center gap-2 rounded-xl border px-4 py-2 text-xs font-semibold text-red-400 hover:bg-red-400/10 transition-colors"
+              style={{ borderColor: 'var(--q-line)' }}
+            >
+              <LogOut className="h-4 w-4" />
+              <span className="hidden sm:inline">Log Out</span>
+            </button>
+          </div>
         </div>
 
         {/* Profile Statistics Grid */}

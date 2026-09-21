@@ -61,7 +61,7 @@ BEGIN
     )
     VALUES (
         NEW.id,
-        COALESCE(NEW.raw_user_meta_data->>'name', NEW.raw_user_meta_data->>'full_name', split_part(NEW.email, '@', 1), 'Alex Vance'),
+        COALESCE(NEW.raw_user_meta_data->>'name', NEW.raw_user_meta_data->>'full_name', split_part(NEW.email, '@', 1), 'New User'),
         NEW.email,
         initial_role,
         COALESCE(NEW.raw_user_meta_data->>'educationLevel', 'Undergraduate'),
@@ -71,34 +71,34 @@ BEGIN
             ARRAY['Learn quantum algorithms', 'Build quantum circuits', 'Quantum programming']
         ),
         initial_level,
-        COALESCE((NEW.raw_user_meta_data->>'overallProgress')::integer, 68),
-        COALESCE((NEW.raw_user_meta_data->>'streak')::integer, 7),
-        COALESCE((NEW.raw_user_meta_data->>'quizAverage')::numeric, 84.00),
+        COALESCE((NEW.raw_user_meta_data->>'overallProgress')::integer, 0),
+        COALESCE((NEW.raw_user_meta_data->>'streak')::integer, 0),
+        COALESCE((NEW.raw_user_meta_data->>'quizAverage')::numeric, 0.00),
         COALESCE(
             ARRAY(SELECT jsonb_array_elements_text(NEW.raw_user_meta_data->'weakTopics')),
-            ARRAY['Quantum Algorithms', 'Circuit Design']
+            ARRAY[]::text[]
         ),
         COALESCE(
             ARRAY(SELECT jsonb_array_elements_text(NEW.raw_user_meta_data->'strongTopics')),
-            ARRAY['Qubits & Superposition', 'Pauli Gates']
+            ARRAY[]::text[]
         ),
         COALESCE(
             ARRAY(SELECT jsonb_array_elements_text(NEW.raw_user_meta_data->'completedTopics')),
-            ARRAY['intro-quantum', 'qubits', 'superposition', 'measurement']
+            ARRAY[]::text[]
         ),
-        COALESCE((NEW.raw_user_meta_data->>'assessmentCompleted')::boolean, TRUE),
-        COALESCE((NEW.raw_user_meta_data->>'onboardingCompleted')::boolean, TRUE),
+        COALESCE((NEW.raw_user_meta_data->>'assessmentCompleted')::boolean, FALSE),
+        COALESCE((NEW.raw_user_meta_data->>'onboardingCompleted')::boolean, FALSE),
         COALESCE(
             ARRAY(SELECT jsonb_array_elements_text(NEW.raw_user_meta_data->'bookmarkedResources')),
-            ARRAY['res-1', 'res-3']
+            ARRAY[]::text[]
         ),
         COALESCE(
             ARRAY(SELECT jsonb_array_elements_text(NEW.raw_user_meta_data->'bookmarkedBooks')),
-            ARRAY['book-1']
+            ARRAY[]::text[]
         ),
         COALESCE(
             ARRAY(SELECT jsonb_array_elements_text(NEW.raw_user_meta_data->'unlockedBadges')),
-            ARRAY['badge-1', 'badge-2', 'badge-3', 'badge-4']
+            ARRAY[]::text[]
         ),
         timezone('utc'::text, now()),
         timezone('utc'::text, now())

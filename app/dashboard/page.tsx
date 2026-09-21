@@ -134,6 +134,45 @@ export default function DashboardPage() {
           </div>
         </div>
 
+        {/* User Status & Progress Bar (Moved from Sidebar) */}
+        <div className="rounded-3xl border p-5 backdrop-blur-xl" style={{ borderColor: 'var(--q-line)', background: 'var(--q-bg-deep)' }}>
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center gap-4">
+              <div className="flex items-center gap-2 text-sm">
+                <span className="flex h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
+                <span className="text-[var(--q-muted)] font-medium">Level:</span>
+                <span
+                  className="rounded-md px-2.5 py-0.5 font-semibold"
+                  style={{
+                    background: 'color-mix(in oklch, var(--q-violet) 25%, transparent)',
+                    color: 'var(--q-cyan)',
+                  }}
+                >
+                  {user.level}
+                </span>
+              </div>
+              <div className="flex items-center gap-1.5 text-sm font-semibold text-amber-400">
+                <Flame className="h-4 w-4" />
+                <span>{user.streak}d streak</span>
+              </div>
+            </div>
+            <div className="text-sm">
+              <span className="text-[var(--q-muted)] font-medium">Course Progress: </span>
+              <span className="font-bold text-white">{user.overallProgress}%</span>
+            </div>
+          </div>
+          
+          <div className="h-2 w-full overflow-hidden rounded-full bg-white/10">
+            <div
+              className="h-full transition-all duration-500"
+              style={{
+                width: `${user.overallProgress}%`,
+                background: 'linear-gradient(90deg, var(--q-cyan), var(--q-violet))',
+              }}
+            />
+          </div>
+        </div>
+
         {/* Top 4 Core Metrics Grid */}
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {/* Card 1: Diagnostic Assessment Level */}

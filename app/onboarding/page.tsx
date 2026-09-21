@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { Check, ArrowRight, GraduationCap, Compass, Target, Sparkles, BookOpen } from 'lucide-react'
 import { useAuth } from '@/lib/auth-context'
 import { AppShell } from '@/components/layout/AppShell'
+import { supabase } from '@/backend/supabase-client'
 
 const EDUCATION_LEVELS = [
   { id: 'School', title: 'High School Student', desc: 'Starting early with physics & maths' },
@@ -46,13 +47,21 @@ export default function OnboardingPage() {
     )
   }
 
-  const handleComplete = () => {
-    updateUser({
+  const handleComplete = async () => {
+    const updates = {
       educationLevel,
       quantumExperience,
       learningGoals: goals,
       onboardingCompleted: true,
-    })
+    }
+    updateUser(updates)
+
+    try {
+      await supabase.from('profiles').update(updates).eq('id', user.id)
+    } catch (err) {
+      console.error('Failed to save onboarding data:', err)
+    }
+
     router.push('/assessment')
   }
 

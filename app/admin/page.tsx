@@ -1,6 +1,7 @@
 'use client'
 
 import React, { useState, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 import {
   ShieldCheck,
   Users,
@@ -33,9 +34,17 @@ import { AppShell } from '@/components/layout/AppShell'
 
 export default function AdminDashboardPage() {
   const { user } = useAuth()
+  const router = useRouter()
   const [activeTab, setActiveTab] = useState<'users' | 'questions' | 'resources' | 'books'>('users')
   const [searchQuery, setSearchQuery] = useState('')
   const [showAddModal, setShowAddModal] = useState(false)
+  
+  // Guard route against non-admins
+  useEffect(() => {
+    if (user.id !== 'usr-1' && user.role !== 'admin') {
+      router.push('/dashboard')
+    }
+  }, [user.role, user.id, router])
   
   // Real API state connected to Supabase Edge Functions
   const [metrics, setMetrics] = useState<AdminMetric[]>(FALLBACK_ADMIN_METRICS)

@@ -3,7 +3,6 @@
 import Link from 'next/link'
 import { useState } from 'react'
 import { Atom, Menu, X } from 'lucide-react'
-import { ThemeToggle } from '@/components/theme-toggle'
 import { useScrollPosition } from '@/hooks/useScrollPosition'
 
 const NAV = [
@@ -67,7 +66,6 @@ export function SiteHeader() {
           </nav>
 
           <div className="hidden items-center gap-3 md:flex">
-            <ThemeToggle />
             <Link
               href="/login"
               className="text-sm font-medium transition-colors hover:text-[var(--q-cyan)]"
@@ -90,7 +88,6 @@ export function SiteHeader() {
           </div>
 
           <div className="flex items-center gap-2 md:hidden">
-            <ThemeToggle />
             <button
               type="button"
               className="relative h-9 w-9 flex items-center justify-center transition-transform duration-150 active:scale-95"

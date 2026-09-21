@@ -11,6 +11,7 @@ import {
   ArrowRight,
   GraduationCap,
 } from 'lucide-react'
+import { supabase } from '@/backend/supabase-client'
 
 type Mode = 'login' | 'register'
 
@@ -19,17 +20,93 @@ export function AuthForm() {
   const [mode, setMode] = useState<Mode>('login')
   const [showPassword, setShowPassword] = useState(false)
   const [submitting, setSubmitting] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [name, setName] = useState('')
+  const [role, setRole] = useState('student')
 
   const isLogin = mode === 'login'
 
-  function handleSubmit(e: FormEvent<HTMLFormElement>) {
+  async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault()
-    // Frontend only: simulate auth success and navigate to onboarding
     setSubmitting(true)
-    setTimeout(() => {
-      setSubmitting(false)
+    setError(null)
+
+    if (isLogin) {
+      const { data, error: signInError } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      })
+
+      if (signInError) {
+        setError(signInError.message)
+        setSubmitting(false)
+        return
+      }
+
+      // Check profile status
+      if (data?.user) {
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('assessmentCompleted')
+          .eq('id', data.user.id)
+          .single()
+
+        if (profile?.assessmentCompleted) {
+          router.push('/dashboard')
+        } else {
+          router.push('/onboarding')
+        }
+      }
+    } else {
+      const { data, error: signUpError } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: { name, role },
+        },
+      })
+
+      if (signUpError) {
+        setError(signUpError.message)
+        setSubmitting(false)
+        return
+      }
+
+      // Retry up to 5 times with 500ms delay for profile creation race condition
+      if (data?.user) {
+        let profileFound = false
+        for (let attempt = 0; attempt < 5; attempt++) {
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('id')
+            .eq('id', data.user.id)
+            .maybeSingle()
+          
+          if (profile) {
+            profileFound = true
+            break
+          }
+          // Wait 500ms before retrying
+          await new Promise((resolve) => setTimeout(resolve, 500))
+        }
+
+        if (!profileFound) {
+          setError('Profile creation timeout. Please refresh or try logging in again.')
+          setSubmitting(false)
+          return
+        }
+      }
+
       router.push('/onboarding')
-    }, 800)
+    }
+  }
+
+  function handleModeChange(newMode: Mode) {
+    setMode(newMode)
+    setError(null)
   }
 
   return (
@@ -72,13 +149,19 @@ export function AuthForm() {
         role="tablist"
         aria-label="Authentication mode"
       >
-        <ToggleButton active={isLogin} onClick={() => setMode('login')}>
+        <ToggleButton active={isLogin} onClick={() => handleModeChange('login')}>
           Sign In
         </ToggleButton>
-        <ToggleButton active={!isLogin} onClick={() => setMode('register')}>
+        <ToggleButton active={!isLogin} onClick={() => handleModeChange('register')}>
           Register
         </ToggleButton>
       </div>
+
+      {error && (
+        <div className="mb-6 rounded-lg border border-red-500/40 bg-red-500/10 p-3 text-sm text-red-300">
+          {error}
+        </div>
+      )}
 
       <form onSubmit={handleSubmit} className="space-y-4">
         {!isLogin && (
@@ -89,6 +172,8 @@ export function AuthForm() {
             placeholder="Ada Lovelace"
             icon={<User className="h-4 w-4" />}
             autoComplete="name"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
           />
         )}
         {!isLogin && (
@@ -97,6 +182,8 @@ export function AuthForm() {
             label="I am a"
             type="select"
             icon={<GraduationCap className="h-4 w-4" />}
+            value={role}
+            onChange={(e) => setRole(e.target.value)}
           />
         )}
         <Field
@@ -106,6 +193,8 @@ export function AuthForm() {
           placeholder="you@university.edu"
           icon={<Mail className="h-4 w-4" />}
           autoComplete="email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
         />
 
         <div>
@@ -128,6 +217,8 @@ export function AuthForm() {
               name="password"
               type={showPassword ? 'text' : 'password'}
               required
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
               placeholder="••••••••"
               autoComplete={isLogin ? 'current-password' : 'new-password'}
               className="w-full rounded-lg border py-2.5 pl-10 pr-11 text-sm outline-none transition-colors focus:border-[var(--q-cyan)] focus:ring-2 focus:ring-[var(--q-cyan)]/30"
@@ -242,7 +333,7 @@ export function AuthForm() {
         {isLogin ? "Don't have an account? " : 'Already have an account? '}
         <button
           type="button"
-          onClick={() => setMode(isLogin ? 'register' : 'login')}
+          onClick={() => handleModeChange(isLogin ? 'register' : 'login')}
           className="font-semibold transition-colors hover:underline"
           style={{ color: 'var(--q-cyan)' }}
         >
@@ -291,6 +382,8 @@ function Field({
   placeholder,
   icon,
   autoComplete,
+  value,
+  onChange,
 }: {
   id: string
   label: string
@@ -298,6 +391,8 @@ function Field({
   placeholder?: string
   icon: React.ReactNode
   autoComplete?: string
+  value?: string
+  onChange?: (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => void
 }) {
   return (
     <div>
@@ -319,7 +414,8 @@ function Field({
           <select
             id={id}
             name={id}
-            defaultValue="student"
+            value={value}
+            onChange={onChange}
             className="w-full appearance-none rounded-lg border py-2.5 pl-10 pr-3 text-sm outline-none transition-colors focus:border-[var(--q-cyan)] focus:ring-2 focus:ring-[var(--q-cyan)]/30"
             style={{
               borderColor: 'var(--q-line)',
@@ -338,6 +434,8 @@ function Field({
             name={id}
             type={type}
             required
+            value={value}
+            onChange={onChange}
             placeholder={placeholder}
             autoComplete={autoComplete}
             className="w-full rounded-lg border py-2.5 pl-10 pr-3 text-sm outline-none transition-colors focus:border-[var(--q-cyan)] focus:ring-2 focus:ring-[var(--q-cyan)]/30"

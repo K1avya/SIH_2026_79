@@ -83,11 +83,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       try {
         const { data: { session } } = await supabase.auth.getSession()
         if (session?.user) {
-          const { data: profile } = await supabase
-            .from('profiles')
-            .select('*')
-            .eq('id', session.user.id)
-            .maybeSingle()
+          let profile = null
+
+          // Retry up to 5 times with 500ms delay for profile creation race condition
+          for (let attempt = 0; attempt < 5; attempt++) {
+            const { data } = await supabase
+              .from('profiles')
+              .select('*')
+              .eq('id', session.user.id)
+              .maybeSingle()
+            
+            if (data) {
+              profile = data
+              break
+            }
+            // Wait 500ms before retrying
+            await new Promise((resolve) => setTimeout(resolve, 500))
+          }
 
           if (profile) {
             const mappedUser: UserProfile = {
@@ -113,6 +125,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             }
             setUser(mappedUser)
             localStorage.setItem('quantify_user_profile', JSON.stringify(mappedUser))
+          } else {
+            console.warn('Profile not found after retries')
           }
         }
       } catch (err) {
@@ -147,32 +161,50 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     })
   }
 
-  const toggleBookmarkResource = (id: string) => {
+  const toggleBookmarkResource = async (id: string) => {
+    let newArray: string[] = []
     setUser((prev) => {
       const exists = prev.bookmarkedResources.includes(id)
-      const updated = exists
+      newArray = exists
         ? prev.bookmarkedResources.filter((item) => item !== id)
         : [...prev.bookmarkedResources, id]
-      const newUser = { ...prev, bookmarkedResources: updated }
+      const newUser = { ...prev, bookmarkedResources: newArray }
       if (typeof window !== 'undefined') {
         localStorage.setItem('quantify_user_profile', JSON.stringify(newUser))
       }
       return newUser
     })
+
+    if (user.id && user.id !== DEFAULT_USER.id) {
+      try {
+        await supabase.from('profiles').update({ bookmarkedResources: newArray }).eq('id', user.id)
+      } catch (err) {
+        console.error('Failed to save resource bookmark:', err)
+      }
+    }
   }
 
-  const toggleBookmarkBook = (id: string) => {
+  const toggleBookmarkBook = async (id: string) => {
+    let newArray: string[] = []
     setUser((prev) => {
       const exists = prev.bookmarkedBooks.includes(id)
-      const updated = exists
+      newArray = exists
         ? prev.bookmarkedBooks.filter((item) => item !== id)
         : [...prev.bookmarkedBooks, id]
-      const newUser = { ...prev, bookmarkedBooks: updated }
+      const newUser = { ...prev, bookmarkedBooks: newArray }
       if (typeof window !== 'undefined') {
         localStorage.setItem('quantify_user_profile', JSON.stringify(newUser))
       }
       return newUser
     })
+
+    if (user.id && user.id !== DEFAULT_USER.id) {
+      try {
+        await supabase.from('profiles').update({ bookmarkedBooks: newArray }).eq('id', user.id)
+      } catch (err) {
+        console.error('Failed to save book bookmark:', err)
+      }
+    }
   }
 
   const markTopicCompleted = (topicId: string) => {
