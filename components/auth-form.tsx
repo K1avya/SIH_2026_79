@@ -46,6 +46,8 @@ export function AuthForm() {
         return
       }
 
+      document.cookie = 'quantify_session=active; path=/; max-age=604800; SameSite=Lax'
+
       // Check profile status
       if (data?.user) {
         const { data: profile } = await supabase
@@ -59,6 +61,8 @@ export function AuthForm() {
         } else {
           router.push('/onboarding')
         }
+      } else {
+        router.push('/dashboard')
       }
     } else {
       const { data, error: signUpError } = await supabase.auth.signUp({
@@ -74,6 +78,8 @@ export function AuthForm() {
         setSubmitting(false)
         return
       }
+
+      document.cookie = 'quantify_session=active; path=/; max-age=604800; SameSite=Lax'
 
       // Retry up to 5 times with 500ms delay for profile creation race condition
       if (data?.user) {
@@ -452,9 +458,17 @@ function Field({
 }
 
 function SocialButton({ label }: { label: string }) {
+  const router = useRouter()
+  
+  const handleClick = () => {
+    document.cookie = 'quantify_session=active; path=/; max-age=604800; SameSite=Lax'
+    router.push('/dashboard')
+  }
+
   return (
     <button
       type="button"
+      onClick={handleClick}
       className="rounded-lg border py-2.5 text-sm font-medium transition-colors hover:border-[var(--q-cyan)]"
       style={{
         borderColor: 'var(--q-line)',

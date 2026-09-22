@@ -59,6 +59,7 @@ export default function ProfilePage() {
             </button>
             <button
               onClick={async () => {
+                document.cookie = 'quantify_session=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT'
                 const { supabase } = await import('@/backend/supabase-client')
                 await supabase.auth.signOut()
                 router.push('/login')

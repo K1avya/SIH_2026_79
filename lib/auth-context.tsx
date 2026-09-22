@@ -85,21 +85,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         if (session?.user) {
           let profile = null
 
-          // Retry up to 5 times with 500ms delay for profile creation race condition
-          for (let attempt = 0; attempt < 5; attempt++) {
-            const { data } = await supabase
-              .from('profiles')
-              .select('*')
-              .eq('id', session.user.id)
-              .maybeSingle()
-            
-            if (data) {
-              profile = data
-              break
-            }
-            // Wait 500ms before retrying
-            await new Promise((resolve) => setTimeout(resolve, 500))
-          }
+          const { data } = await supabase
+            .from('profiles')
+            .select('*')
+            .eq('id', session.user.id)
+            .maybeSingle()
+          
+          profile = data
 
           if (profile) {
             const mappedUser: UserProfile = {
