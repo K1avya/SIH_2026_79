@@ -110,16 +110,82 @@ Since you are at the **${level}** level, I recommend testing this concept direct
 
 export const getMockAIResponse = getFallbackTutorResponse
 
+export interface CircuitLintResult {
+  hasWarnings: boolean
+  issues: string[]
+}
+
+/**
+ * Static rule-based analyzer for quantum circuits.
+ * Runs pre-pass checks before passing circuit context to Gemini AI.
+ */
+export function lintCircuit(gates: any[], qubitCount: number): CircuitLintResult {
+  const issues: string[] = []
+
+  // Check 1: Missing Measurement Gate
+  const hasMeasurement = gates.some((g) => g.type === 'M')
+  if (gates.length > 0 && !hasMeasurement) {
+    issues.push('💡 Notice: Your circuit does not contain any Measurement (M) gates. Measurement gates collapse superposition into classical bits for readout.')
+  }
+
+  // Check 2: Adjacent Cancelling Gate Pairs (H-H, X-X, Y-Y, Z-Z)
+  const sorted = [...gates].sort((a, b) => a.stepIndex - b.stepIndex)
+  for (let i = 0; i < sorted.length - 1; i++) {
+    const g1 = sorted[i]
+    const g2 = sorted[i + 1]
+    if (
+      g1.qubitIndex === g2.qubitIndex &&
+      g1.type === g2.type &&
+      ['H', 'X', 'Y', 'Z'].includes(g1.type) &&
+      Math.abs(g1.stepIndex - g2.stepIndex) === 1
+    ) {
+      issues.push(`⚡ Optimization Tip: Two adjacent ${g1.type} gates on |q${g1.qubitIndex}⟩ cancel out (${g1.type}·${g1.type} = I). You can remove this pair to reduce circuit depth.`)
+    }
+  }
+
+  // Check 3: Invalid CNOT (control == target)
+  for (const g of gates) {
+    if (g.type === 'CNOT') {
+      const c = g.controlQubitIndex ?? g.qubitIndex
+      const t = g.targetQubitIndex ?? (c + 1) % qubitCount
+      if (c === t) {
+        issues.push(`⚠️ Invalid Gate Warning: CNOT gate on wire ${c} cannot have the same control and target qubit.`)
+      }
+    }
+  }
+
+  // Check 4: Idle / Unused Qubits
+  for (let q = 0; q < qubitCount; q++) {
+    const used = gates.some(
+      (g) => g.qubitIndex === q || g.controlQubitIndex === q || g.targetQubitIndex === q
+    )
+    if (!used && gates.length > 1) {
+      issues.push(`ℹ️ Notice: Qubit register |q${q}⟩ is currently idle with no gates placed.`)
+    }
+  }
+
+  return {
+    hasWarnings: issues.length > 0,
+    issues,
+  }
+}
+
 /**
  * Sends a message to the Quanta AI Tutor Edge Function ('tutor-chat').
- * Invokes Gemini API directly with student level, current topic, and conversation history.
+ * Invokes Gemini API directly with student level, current topic, circuit payload, and conversation history.
  */
 export async function sendTutorChatMessage(
   userId: string,
   message: string,
   currentTopic: string = 'General Quantum Computing',
   currentLevel: string = 'Intermediate',
-  conversationId?: string
+  conversationId?: string,
+  circuitContext?: {
+    qubitCount: number
+    placedGates: any[]
+    results?: any
+    qiskitCode?: string
+  }
 ): Promise<{ data: ChatMessage | null; error: Error | null }> {
   try {
     const res = await apiPost<ChatMessage>('tutor-chat', {
@@ -128,6 +194,7 @@ export async function sendTutorChatMessage(
       message,
       currentTopic,
       currentLevel,
+      circuitContext,
     })
 
     if (res.status === 'error' || !res.data) {

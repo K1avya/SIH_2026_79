@@ -198,7 +198,13 @@ serve(async (req: Request) => {
     }
 
     // 6. Call Google Gemini API
-    const systemPrompt = `You are Quanta AI, a quantum computing tutor. Student level: ${currentLevel}. Current topic: ${currentTopic}. Explain concepts clearly, use LaTeX for equations, ask Socratic questions when appropriate.`
+    const circuitContext = (body as any).circuitContext
+    let circuitDetailsStr = ''
+    if (circuitContext) {
+      circuitDetailsStr = `\nActive Student Circuit Context:\nQubit Count: ${circuitContext.qubitCount}\nGates: ${JSON.stringify(circuitContext.placedGates)}\nCode: ${circuitContext.qiskitCode || 'N/A'}`
+    }
+
+    const systemPrompt = `You are Quanta AI, a quantum computing tutor. Student level: ${currentLevel}. Current topic: ${currentTopic}.${circuitDetailsStr}\nExplain concepts clearly, use LaTeX for equations, analyze active student circuits, and suggest fixes or optimizations when asked.`
 
     // Models ordered by highest free tier quota and speed
     const preferredModels = [
