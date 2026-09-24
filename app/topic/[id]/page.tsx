@@ -20,6 +20,7 @@ import {
 import { Topic, FALLBACK_TOPICS, fetchTopicByIdServer } from '@/lib/api/topics'
 import { useAuth } from '@/lib/auth-context'
 import { AppShell } from '@/components/layout/AppShell'
+import { BlochSphere } from '@/components/bloch-sphere'
 
 export default function TopicLearningPage() {
   const params = useParams()
@@ -45,7 +46,7 @@ export default function TopicLearningPage() {
     loadTopic()
   }, [topicId, user.completedTopics])
 
-  const isCompleted = user.completedTopics.includes(currentTopic.id)
+  const isCompleted = user?.completedTopics?.includes(currentTopic.id) || false
 
   const handleMarkComplete = () => {
     markTopicCompleted(currentTopic.id)
@@ -177,18 +178,12 @@ export default function TopicLearningPage() {
 
         {/* Tab 2: Visual */}
         {activeTab === 'visual' && (
-          <div className="rounded-3xl border p-8 backdrop-blur-xl text-center space-y-4" style={{ borderColor: 'var(--q-line)', background: 'var(--q-bg-deep)' }}>
-            <div className="flex h-16 w-16 mx-auto items-center justify-center rounded-3xl border border-cyan-500/30 bg-cyan-500/10 text-cyan-400">
-              <Sparkles className="h-8 w-8 animate-pulse" />
-            </div>
-            <h3 className="font-heading text-xl font-bold text-white">Interactive Bloch Sphere Visualizer</h3>
-            <p className="text-xs text-[var(--q-muted)] max-w-md mx-auto">
-              Experiment with state vectors on the unit sphere for {currentTopic.title}. Use the Quantum Circuit Simulator for full multi-qubit visual manipulation.
-            </p>
-            <div className="pt-2">
+          <div className="space-y-6">
+            <BlochSphere qubitLabel={`Topic: ${currentTopic.title}`} interactive={true} />
+            <div className="text-center pt-2">
               <Link
                 href="/simulator"
-                className="inline-flex items-center gap-2 rounded-2xl px-6 py-2.5 text-xs font-bold text-black"
+                className="inline-flex items-center gap-2 rounded-2xl px-6 py-2.5 text-xs font-bold text-black shadow-lg shadow-cyan-500/20"
                 style={{ background: 'linear-gradient(135deg, var(--q-cyan), var(--q-violet))' }}
               >
                 <span>Open in Quantum Simulator</span>
