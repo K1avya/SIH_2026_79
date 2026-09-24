@@ -17,6 +17,7 @@ import {
   X,
   Check,
   Loader2,
+  GraduationCap,
 } from 'lucide-react'
 import {
   fetchAdminStatsServer,
@@ -28,6 +29,7 @@ import {
   AdminQuestionItem,
   FALLBACK_ADMIN_METRICS,
   FALLBACK_ADMIN_QUESTIONS,
+  FALLBACK_CLASSROOMS,
 } from '@/lib/api/admin'
 import { useAuth } from '@/lib/auth-context'
 import { AppShell } from '@/components/layout/AppShell'
@@ -35,7 +37,7 @@ import { AppShell } from '@/components/layout/AppShell'
 export default function AdminDashboardPage() {
   const { user } = useAuth()
   const router = useRouter()
-  const [activeTab, setActiveTab] = useState<'users' | 'questions' | 'resources' | 'books'>('users')
+  const [activeTab, setActiveTab] = useState<'users' | 'questions' | 'resources' | 'books' | 'classrooms'>('users')
   const [searchQuery, setSearchQuery] = useState('')
   const [showAddModal, setShowAddModal] = useState(false)
   
@@ -191,9 +193,10 @@ export default function AdminDashboardPage() {
         </div>
 
         {/* Admin Section Tabs */}
-        <div className="flex border-b text-xs sm:text-sm font-semibold" style={{ borderColor: 'var(--q-line)' }}>
+        <div className="flex border-b text-xs sm:text-sm font-semibold overflow-x-auto" style={{ borderColor: 'var(--q-line)' }}>
           {[
             { id: 'users', label: 'User Accounts', icon: <Users className="h-4 w-4" /> },
+            { id: 'classrooms', label: 'Classrooms & Analytics', icon: <GraduationCap className="h-4 w-4" /> },
             { id: 'questions', label: 'Assessment Questions', icon: <HelpCircle className="h-4 w-4" /> },
             { id: 'resources', label: 'Resource Registry', icon: <Library className="h-4 w-4" /> },
             { id: 'books', label: 'Book Recommendations', icon: <BookMarked className="h-4 w-4" /> },
@@ -201,7 +204,7 @@ export default function AdminDashboardPage() {
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id as any)}
-              className={`flex items-center gap-2 border-b-2 px-5 py-3 font-semibold transition-all ${
+              className={`flex items-center gap-2 border-b-2 px-5 py-3 font-semibold transition-all shrink-0 ${
                 activeTab === tab.id
                   ? 'border-[var(--q-cyan)] text-[var(--q-cyan)]'
                   : 'border-transparent text-[var(--q-muted)] hover:text-white'
@@ -214,7 +217,7 @@ export default function AdminDashboardPage() {
         </div>
 
         {/* Tab Content: Search & Data Table */}
-        <div className="rounded-3xl border p-6 backdrop-blur-xl space-y-4" style={{ borderColor: 'var(--q-line)', background: 'var(--q-bg-deep)' }}>
+        <div className="rounded-3xl border p-6 backdrop-blur-xl space-y-6" style={{ borderColor: 'var(--q-line)', background: 'var(--q-bg-deep)' }}>
           <div className="flex items-center justify-between gap-4">
             <div className="relative flex-1 max-w-md">
               <Search className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-[var(--q-muted)]" />
@@ -228,6 +231,84 @@ export default function AdminDashboardPage() {
               />
             </div>
           </div>
+
+          {/* Classrooms Tab View */}
+          {activeTab === 'classrooms' && (
+            <div className="space-y-6">
+              <div className="rounded-2xl border p-5 border-amber-500/30 bg-amber-500/10 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                <div>
+                  <span className="text-[10px] font-bold text-amber-300 uppercase tracking-wider block">Active Instructor Class</span>
+                  <h3 className="font-heading text-lg font-bold text-white">{FALLBACK_CLASSROOMS[0].name}</h3>
+                  <p className="text-xs text-[var(--q-muted)]">Instructor: {FALLBACK_CLASSROOMS[0].instructorName} • {FALLBACK_CLASSROOMS[0].studentCount} Enrolled Students</p>
+                </div>
+
+                <div className="flex items-center gap-3 shrink-0">
+                  <div className="rounded-xl border border-white/20 bg-black/50 px-3 py-1.5 font-mono text-xs font-bold text-amber-300">
+                    Join Code: {FALLBACK_CLASSROOMS[0].code}
+                  </div>
+                </div>
+              </div>
+
+              {/* Class Weak-Topic Heatmap */}
+              <div className="space-y-3">
+                <h4 className="font-heading text-xs font-bold uppercase tracking-wider text-[var(--q-muted)]">
+                  Classroom Weak-Topic Diagnostic Heatmap
+                </h4>
+                <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+                  {FALLBACK_CLASSROOMS[0].weakTopicsHeatmap.map((item) => (
+                    <div key={item.category} className="rounded-2xl border p-4 space-y-2" style={{ borderColor: 'var(--q-line)', background: 'rgba(0,0,0,0.4)' }}>
+                      <span className="text-xs font-semibold text-white block">{item.category}</span>
+                      <div className="flex justify-between text-xs font-mono">
+                        <span className="text-red-400 font-bold">{item.weakPercentage}% Needs Revision</span>
+                      </div>
+                      <div className="h-2 w-full rounded-full bg-black/50 overflow-hidden">
+                        <div
+                          className="h-full bg-red-500 transition-all duration-300"
+                          style={{ width: `${item.weakPercentage}%` }}
+                        />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Class Roster Table */}
+              <div className="space-y-3 pt-2">
+                <h4 className="font-heading text-xs font-bold uppercase tracking-wider text-[var(--q-muted)]">
+                  Student Roster Telemetry
+                </h4>
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left text-xs">
+                    <thead>
+                      <tr className="border-b text-[var(--q-muted)] uppercase tracking-wider" style={{ borderColor: 'var(--q-line)' }}>
+                        <th className="py-3 px-4">Student</th>
+                        <th className="py-3 px-4">Proficiency Level</th>
+                        <th className="py-3 px-4">Curriculum Progress</th>
+                        <th className="py-3 px-4">Quiz Average</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-white/5">
+                      {FALLBACK_CLASSROOMS[0].students.map((st) => (
+                        <tr key={st.id} className="hover:bg-white/5">
+                          <td className="py-3 px-4 font-semibold text-white">
+                            <p>{st.name}</p>
+                            <p className="text-[10px] text-[var(--q-muted)] font-normal">{st.email}</p>
+                          </td>
+                          <td className="py-3 px-4">
+                            <span className="rounded-md bg-cyan-500/20 text-cyan-300 px-2 py-0.5 font-semibold capitalize">
+                              {st.level}
+                            </span>
+                          </td>
+                          <td className="py-3 px-4 font-bold text-white">{st.progress}%</td>
+                          <td className="py-3 px-4 text-emerald-400 font-bold">{st.quizAvg}%</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* Table View */}
           {activeTab === 'users' && (

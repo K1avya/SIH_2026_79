@@ -156,7 +156,7 @@ export async function fetchAdminStatsServer(): Promise<{ data: AdminStatsRespons
     if (error) throw error
     return { data, error: null }
   } catch (err: any) {
-    console.error('Failed to fetch admin statistics:', err)
+    console.warn('Admin stats Edge Function fallback:', err?.message || err)
     return { data: null, error: err }
   }
 }
@@ -176,7 +176,7 @@ export async function fetchAdminQuestionsServer(filters?: {
     if (error) throw error
     return { data: data?.questions || [], error: null }
   } catch (err: any) {
-    console.error('Failed to list assessment questions:', err)
+    console.warn('Admin questions Edge Function fallback:', err?.message || err)
     return { data: null, error: err }
   }
 }
@@ -195,7 +195,7 @@ export async function createAdminQuestionServer(
     if (error) throw error
     return { data: data?.question || null, error: null }
   } catch (err: any) {
-    console.error('Failed to create assessment question:', err)
+    console.warn('Create admin question Edge Function fallback:', err?.message || err)
     return { data: null, error: err }
   }
 }
@@ -215,7 +215,7 @@ export async function updateAdminQuestionServer(
     if (error) throw error
     return { data: data?.question || null, error: null }
   } catch (err: any) {
-    console.error('Failed to update assessment question:', err)
+    console.warn('Update admin question Edge Function fallback:', err?.message || err)
     return { data: null, error: err }
   }
 }
@@ -232,7 +232,7 @@ export async function deleteAdminQuestionServer(id: string): Promise<{ success: 
     if (error) throw error
     return { success: data?.success ?? true, error: null }
   } catch (err: any) {
-    console.error('Failed to delete assessment question:', err)
+    console.warn('Delete admin question Edge Function fallback:', err?.message || err)
     return { success: false, error: err }
   }
 }
@@ -249,7 +249,7 @@ export async function fetchAdminCutoffsServer(): Promise<{ data: AdminCutoffsRes
     if (error) throw error
     return { data, error: null }
   } catch (err: any) {
-    console.error('Failed to fetch admin cutoffs:', err)
+    console.warn('Fetch admin cutoffs Edge Function fallback:', err?.message || err)
     return { data: null, error: err }
   }
 }
@@ -269,7 +269,45 @@ export async function updateAdminCutoffsServer(
     if (error) throw error
     return { data, error: null }
   } catch (err: any) {
-    console.error('Failed to update admin cutoffs:', err)
+    console.warn('Update admin cutoffs Edge Function fallback:', err?.message || err)
     return { data: null, error: err }
   }
 }
+
+export interface ClassroomRecord {
+  id: string
+  name: string
+  code: string
+  instructorName: string
+  studentCount: number
+  weakTopicsHeatmap: Array<{ category: string; weakPercentage: number }>
+  students: Array<{
+    id: string
+    name: string
+    email: string
+    level: string
+    progress: number
+    quizAvg: number
+  }>
+}
+
+export const FALLBACK_CLASSROOMS: ClassroomRecord[] = [
+  {
+    id: 'cls-1',
+    name: 'CS-401 Quantum Information Science (Fall 2026)',
+    code: 'QUANT-8921',
+    instructorName: 'Dr. Evelyn Vance',
+    studentCount: 38,
+    weakTopicsHeatmap: [
+      { category: 'Qubits & Superposition', weakPercentage: 15 },
+      { category: 'Quantum Gates', weakPercentage: 42 },
+      { category: 'Quantum Entanglement', weakPercentage: 68 },
+      { category: 'Quantum Algorithms (Grover)', weakPercentage: 74 },
+    ],
+    students: [
+      { id: 'st-1', name: 'Alex Rivera', email: 'alex.rivera@mit.edu', level: 'intermediate', progress: 78, quizAvg: 88.5 },
+      { id: 'st-2', name: 'Sophia Chen', email: 'sophia.c@stanford.edu', level: 'advanced', progress: 92, quizAvg: 95.0 },
+      { id: 'st-3', name: 'Marcus Johnson', email: 'mjohnson@berkeley.edu', level: 'beginner', progress: 45, quizAvg: 62.0 },
+    ],
+  },
+]
