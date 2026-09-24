@@ -40,14 +40,14 @@ export default function BooksPage() {
           </div>
 
           <div className="text-xs text-[var(--q-muted)] border rounded-xl p-2.5" style={{ borderColor: 'var(--q-line)', background: 'var(--q-bg-deep)' }}>
-            <span>Bookmarked Books: <strong className="text-amber-400">{user.bookmarkedBooks.length}</strong></span>
+            <span>Bookmarked Books: <strong className="text-amber-400">{user?.bookmarkedBooks?.length || 0}</strong></span>
           </div>
         </div>
 
         {/* Books Cards Grid */}
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-2">
           {books.map((book) => {
-            const isBookmarked = user.bookmarkedBooks.includes(book.id)
+            const isBookmarked = user?.bookmarkedBooks?.includes(book.id) || false
 
             return (
               <div

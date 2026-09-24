@@ -39,8 +39,8 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="en" className={`scroll-smooth ${spaceGrotesk.variable} ${inter.variable}`}>
-      <body className="antialiased font-sans">
+    <html lang="en" suppressHydrationWarning className={`scroll-smooth ${spaceGrotesk.variable} ${inter.variable}`}>
+      <body className="antialiased font-sans" suppressHydrationWarning>
         <ThemeProvider>
           <AuthProvider>{children}</AuthProvider>
           <Toaster position="top-right" richColors closeButton />

@@ -84,7 +84,7 @@ export default function ResourcesPage() {
           </div>
 
           <div className="text-xs text-[var(--q-muted)] border rounded-xl p-2.5" style={{ borderColor: 'var(--q-line)', background: 'var(--q-bg-deep)' }}>
-            <span>Bookmarked: <strong className="text-amber-400">{user.bookmarkedResources.length}</strong></span>
+            <span>Bookmarked: <strong className="text-amber-400">{user?.bookmarkedResources?.length || 0}</strong></span>
           </div>
         </div>
 
@@ -145,7 +145,7 @@ export default function ResourcesPage() {
         ) : (
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {filteredResources.map((res) => {
-              const isBookmarked = user.bookmarkedResources.includes(res.id)
+              const isBookmarked = user?.bookmarkedResources?.includes(res.id) || false
 
               return (
                 <div

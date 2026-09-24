@@ -294,7 +294,7 @@ export default function DashboardPage() {
             </div>
 
             <div className="space-y-2">
-              {(user.weakTopics.length > 0 ? user.weakTopics : ['Quantum Algorithms', 'Circuit Design']).map((wt) => (
+              {((user?.weakTopics && user.weakTopics.length > 0) ? user.weakTopics : ['Quantum Algorithms', 'Circuit Design']).map((wt) => (
                 <div key={wt} className="rounded-xl border border-amber-500/30 bg-black/30 p-2.5 text-xs font-semibold text-amber-300 flex justify-between items-center">
                   <span>{wt}</span>
                   <span className="text-[10px] text-amber-400">Needs Practice</span>

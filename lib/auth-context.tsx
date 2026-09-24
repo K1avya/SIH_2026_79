@@ -72,7 +72,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const saved = localStorage.getItem('quantify_user_profile')
     if (saved) {
       try {
-        setUser((prev) => ({ ...prev, ...JSON.parse(saved) }))
+        const parsed = JSON.parse(saved)
+        setUser((prev) => ({
+          ...prev,
+          ...parsed,
+          bookmarkedResources: Array.isArray(parsed.bookmarkedResources) ? parsed.bookmarkedResources : (prev.bookmarkedResources || []),
+          bookmarkedBooks: Array.isArray(parsed.bookmarkedBooks) ? parsed.bookmarkedBooks : (prev.bookmarkedBooks || []),
+          weakTopics: Array.isArray(parsed.weakTopics) ? parsed.weakTopics : (prev.weakTopics || []),
+          strongTopics: Array.isArray(parsed.strongTopics) ? parsed.strongTopics : (prev.strongTopics || []),
+          completedTopics: Array.isArray(parsed.completedTopics) ? parsed.completedTopics : (prev.completedTopics || []),
+          learningGoals: Array.isArray(parsed.learningGoals) ? parsed.learningGoals : (prev.learningGoals || []),
+          unlockedBadges: Array.isArray(parsed.unlockedBadges) ? parsed.unlockedBadges : (prev.unlockedBadges || []),
+        }))
       } catch (e) {
         console.error('Failed to parse saved profile', e)
       }
@@ -94,6 +105,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           profile = data
 
           if (profile) {
+            const rawLevel = profile.level || 'Beginner'
+            const formattedLevel = (rawLevel.charAt(0).toUpperCase() + rawLevel.slice(1)) as any
             const mappedUser: UserProfile = {
               id: profile.id,
               name: profile.name || session.user.email?.split('@')[0] || 'Learner',
@@ -102,18 +115,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
               educationLevel: profile.educationLevel || 'Undergraduate',
               quantumExperience: 'Intermediate',
               learningGoals: ['Learn quantum algorithms', 'Build quantum circuits'],
-              level: (profile.level.charAt(0).toUpperCase() + profile.level.slice(1)) as any,
+              level: formattedLevel,
               overallProgress: profile.overallProgress || 0,
               streak: profile.streak || 0,
               quizAverage: Number(profile.quizAverage) || 0,
-              weakTopics: profile.weakTopics || [],
-              strongTopics: profile.strongTopics || [],
-              completedTopics: profile.completedTopics || [],
+              weakTopics: Array.isArray(profile.weakTopics) ? profile.weakTopics : [],
+              strongTopics: Array.isArray(profile.strongTopics) ? profile.strongTopics : [],
+              completedTopics: Array.isArray(profile.completedTopics) ? profile.completedTopics : [],
               assessmentCompleted: profile.assessmentCompleted || false,
               onboardingCompleted: profile.onboardingCompleted || false,
-              bookmarkedResources: profile.bookmarkedResources || [],
-              bookmarkedBooks: profile.bookmarkedBooks || [],
-              unlockedBadges: profile.unlockedBadges || [],
+              bookmarkedResources: Array.isArray(profile.bookmarkedResources) ? profile.bookmarkedResources : [],
+              bookmarkedBooks: Array.isArray(profile.bookmarkedBooks) ? profile.bookmarkedBooks : [],
+              unlockedBadges: Array.isArray(profile.unlockedBadges) ? profile.unlockedBadges : [],
             }
             setUser(mappedUser)
             localStorage.setItem('quantify_user_profile', JSON.stringify(mappedUser))
@@ -156,10 +169,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const toggleBookmarkResource = async (id: string) => {
     let newArray: string[] = []
     setUser((prev) => {
-      const exists = prev.bookmarkedResources.includes(id)
+      const current = prev.bookmarkedResources || []
+      const exists = current.includes(id)
       newArray = exists
-        ? prev.bookmarkedResources.filter((item) => item !== id)
-        : [...prev.bookmarkedResources, id]
+        ? current.filter((item) => item !== id)
+        : [...current, id]
       const newUser = { ...prev, bookmarkedResources: newArray }
       if (typeof window !== 'undefined') {
         localStorage.setItem('quantify_user_profile', JSON.stringify(newUser))
@@ -179,10 +193,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const toggleBookmarkBook = async (id: string) => {
     let newArray: string[] = []
     setUser((prev) => {
-      const exists = prev.bookmarkedBooks.includes(id)
+      const current = prev.bookmarkedBooks || []
+      const exists = current.includes(id)
       newArray = exists
-        ? prev.bookmarkedBooks.filter((item) => item !== id)
-        : [...prev.bookmarkedBooks, id]
+        ? current.filter((item) => item !== id)
+        : [...current, id]
       const newUser = { ...prev, bookmarkedBooks: newArray }
       if (typeof window !== 'undefined') {
         localStorage.setItem('quantify_user_profile', JSON.stringify(newUser))
@@ -201,8 +216,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const markTopicCompleted = (topicId: string) => {
     setUser((prev) => {
-      if (prev.completedTopics.includes(topicId)) return prev
-      const updatedTopics = [...prev.completedTopics, topicId]
+      const currentTopics = prev.completedTopics || []
+      if (currentTopics.includes(topicId)) return prev
+      const updatedTopics = [...currentTopics, topicId]
       const newProgress = Math.min(100, Math.round((updatedTopics.length / 12) * 100))
       const newUser = {
         ...prev,
