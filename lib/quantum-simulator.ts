@@ -85,6 +85,27 @@ export function simulateQuantumCircuit(
         }
       }
       state = nextState
+    } else if (gate.type === 'SWAP') {
+      const control = gate.controlQubit ?? 0
+      const target = gate.targetQubit
+
+      if (control === target || control >= qubitCount || target >= qubitCount) {
+        continue // invalid SWAP
+      }
+
+      const nextState: Complex[] = [...state]
+      for (let i = 0; i < dim; i++) {
+        const bitC = (i >> control) & 1
+        const bitT = (i >> target) & 1
+        if (bitC !== bitT) {
+          const swappedIdx = i ^ (1 << control) ^ (1 << target)
+          nextState[swappedIdx] = state[i]
+        }
+      }
+      state = nextState
+    } else if (gate.type === 'M') {
+      // Measurement marker gate - preserved for readout register indexing
+      continue
     } else {
       // 1-Qubit Gate
       const mat = GATES_1Q[gate.type]
@@ -99,13 +120,11 @@ export function simulateQuantumCircuit(
         const i1 = i | (1 << target) // index with target bit = 1
 
         if (bit === 0) {
-          // nextState[i0] = mat[0][0]*state[i0] + mat[0][1]*state[i1]
           nextState[i] = cAdd(
             cMul(mat[0][0], state[i0]),
             cMul(mat[0][1], state[i1])
           )
         } else {
-          // nextState[i1] = mat[1][0]*state[i0] + mat[1][1]*state[i1]
           nextState[i] = cAdd(
             cMul(mat[1][0], state[i0]),
             cMul(mat[1][1], state[i1])
@@ -130,6 +149,27 @@ export function simulateQuantumCircuit(
     }
   })
 
+  // Formatted statevector representation
+  const stateVector = state.map((amp, idx) => {
+    const binary = idx.toString(2).padStart(qubitCount, '0')
+    const mag = Math.sqrt(cAbsSq(amp))
+    let ampStr = '0.0'
+    if (mag > 0.0001) {
+      if (Math.abs(amp.i) < 0.0001) {
+        ampStr = amp.r.toFixed(3)
+      } else if (Math.abs(amp.r) < 0.0001) {
+        ampStr = `${amp.i.toFixed(3)}i`
+      } else {
+        ampStr = `${amp.r.toFixed(3)} ${amp.i >= 0 ? '+' : '-'} ${Math.abs(amp.i).toFixed(3)}i`
+      }
+    }
+    return {
+      state: `|${binary}⟩`,
+      amplitude: ampStr,
+      magnitude: Number(mag.toFixed(3)),
+    }
+  })
+
   // Detect entanglement heuristic (multiple non-zero states with correlations)
   const nonZero = basisStates.filter((s) => s.probability > 0.01)
   const hasCnot = gates.some((g) => g.type === 'CNOT')
@@ -142,5 +182,6 @@ export function simulateQuantumCircuit(
     basisStates,
     executionTimeMs,
     isEntangled,
+    stateVector,
   }
 }

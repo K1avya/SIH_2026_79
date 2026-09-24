@@ -66,13 +66,13 @@ export interface LearningPathItem {
   isWeakPriority: boolean
 }
 
-export type GateType = 'X' | 'Y' | 'Z' | 'H' | 'S' | 'T' | 'CNOT'
+export type GateType = 'X' | 'Y' | 'Z' | 'H' | 'S' | 'T' | 'CNOT' | 'SWAP' | 'M'
 
 export interface PlacedGate {
   id: string
   type: GateType
   targetQubit: number // 0 to 4
-  controlQubit?: number // for CNOT
+  controlQubit?: number // for CNOT / SWAP
   step: number // 0 to 7
 }
 
@@ -89,6 +89,9 @@ export interface SimulationResult {
   basisStates: BasisStateProbability[]
   executionTimeMs: number
   isEntangled: boolean
+  stateVector?: { state: string; amplitude: string; magnitude: number }[]
+  qiskitCode?: string
+  qasm?: string
 }
 
 export interface BookRecommendation {

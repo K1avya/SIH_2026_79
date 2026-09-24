@@ -1,5 +1,6 @@
 import { supabase } from '@/backend/supabase-client'
 import { SimulationResult } from '@/types/quantify'
+import { simulateQuantumCircuit } from '@/lib/quantum-simulator'
 
 export interface PlacedGate {
   id: string
@@ -7,6 +8,7 @@ export interface PlacedGate {
   qubitIndex: number
   stepIndex: number
   targetQubitIndex?: number
+  controlQubitIndex?: number
 }
 
 export interface GateDefinition {
@@ -157,52 +159,72 @@ export function simulateCircuitClient(
   backend: string = 'Qiskit Aer',
   shots: number = 1000
 ): SimulationOutput {
-  const hasH0 = gates.some((g) => g.qubitIndex === 0 && g.type === 'H')
-  const hasCNOT = gates.some((g) => g.type === 'CNOT')
+  const mappedGates = gates.map((g) => {
+    let controlQubit: number | undefined = undefined
+    let targetQubit: number = g.qubitIndex
 
-  let probs: Record<string, number> = {}
+    if (g.type === 'CNOT' || g.type === 'SWAP') {
+      if (g.controlQubitIndex !== undefined && g.targetQubitIndex !== undefined) {
+        controlQubit = g.controlQubitIndex
+        targetQubit = g.targetQubitIndex
+      } else if (g.targetQubitIndex !== undefined && g.targetQubitIndex !== g.qubitIndex) {
+        controlQubit = g.qubitIndex
+        targetQubit = g.targetQubitIndex
+      } else {
+        controlQubit = g.qubitIndex
+        targetQubit = (g.qubitIndex + 1) % qubitsCount
+      }
+    }
 
-  if (qubitsCount === 2) {
-    if (hasH0 && hasCNOT) {
-      const count00 = Math.round(shots * (0.49 + Math.random() * 0.02))
-      const count11 = shots - count00
-      probs = { '|00⟩': count00, '|11⟩': count11 }
-    } else if (hasH0) {
-      const count00 = Math.round(shots * (0.48 + Math.random() * 0.04))
-      const count01 = shots - count00
-      probs = { '|00⟩': count00, '|01⟩': count01 }
-    } else {
-      probs = { '|00⟩': shots }
+    return {
+      id: g.id || `g-${Math.random()}`,
+      type: g.type as any,
+      targetQubit,
+      controlQubit,
+      step: g.stepIndex !== undefined ? g.stepIndex : 0,
     }
-  } else if (qubitsCount === 3) {
-    if (hasH0 && hasCNOT) {
-      const count000 = Math.round(shots * (0.495 + Math.random() * 0.01))
-      const count111 = shots - count000
-      probs = { '|000⟩': count000, '|111⟩': count111 }
-    } else {
-      probs = { '|000⟩': shots }
-    }
+  })
+
+  const simResult = simulateQuantumCircuit(qubitsCount, mappedGates as any)
+
+  let remainingShots = shots
+  const counts: Record<string, number> = {}
+
+  const nonZeroBasis = simResult.basisStates.filter((b) => b.probability > 0.0001)
+
+  if (nonZeroBasis.length === 0) {
+    const zeroState = `|${'0'.repeat(qubitsCount)}⟩`
+    counts[zeroState] = shots
   } else {
-    probs = { '|0000⟩': shots }
+    nonZeroBasis.forEach((b, idx) => {
+      if (idx === nonZeroBasis.length - 1) {
+        counts[b.state] = remainingShots
+      } else {
+        const allocated = Math.round(shots * b.probability)
+        const count = Math.min(allocated, remainingShots)
+        counts[b.state] = count
+        remainingShots -= count
+      }
+    })
   }
 
-  const probabilities = Object.entries(probs).map(([state, count]) => ({
+  const probabilities = Object.entries(counts).map(([state, count]) => ({
     state,
     count,
-    percentage: Math.round((count / shots) * 1000) / 10,
+    percentage: Number(((count / shots) * 100).toFixed(1)),
   }))
 
-  const stateVector = Object.entries(probs).map(([state, count]) => ({
-    state,
-    amplitude: count > 0 ? `1/√${Object.keys(probs).length}` : '0.0',
-    magnitude: Math.sqrt(count / shots),
+  const stateVector = simResult.stateVector || simResult.basisStates.map((b) => ({
+    state: b.state,
+    amplitude: `${b.amplitudeReal} ${b.amplitudeImag >= 0 ? '+' : ''} ${b.amplitudeImag}i`,
+    magnitude: Math.sqrt(b.probability),
   }))
 
   return {
-    counts: probs,
+    counts,
     probabilities,
     stateVector,
-    executionTimeMs: Math.floor(45 + Math.random() * 30),
+    executionTimeMs: simResult.executionTimeMs,
     backend,
     shots,
   }
