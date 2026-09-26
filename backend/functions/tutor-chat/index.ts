@@ -200,6 +200,9 @@ serve(async (req: Request) => {
     // 6. Call Google Gemini API
     const circuitContext = (body as any).circuitContext
     const mode = (body as any).mode
+    const questionText = (body as any).questionText
+    const chosenOptionText = (body as any).chosenOptionText
+    const correctOptionText = (body as any).correctOptionText
     let circuitDetailsStr = ''
     if (circuitContext) {
       circuitDetailsStr = `\nActive Student Circuit Context:\nQubit Count: ${circuitContext.qubitCount}\nGates: ${JSON.stringify(circuitContext.placedGates)}\nCode: ${circuitContext.qiskitCode || 'N/A'}`
@@ -208,6 +211,8 @@ serve(async (req: Request) => {
     let systemPrompt: string
     if (mode === 'analogy') {
       systemPrompt = `You are Quanta AI. Generate ONE short, vivid, real-world analogy (no jargon, 2-3 sentences max) for what this exact quantum circuit does, based on the qubit count, gates, and result probabilities provided below.${circuitDetailsStr}`
+    } else if (mode === 'mistake-doctor') {
+      systemPrompt = `You are Quanta AI. The learner answered a quiz question incorrectly. Question: "${questionText}". They chose: "${chosenOptionText}". The correct answer is: "${correctOptionText}". In exactly 3 short sentences, explain why their choice is a common misconception and how to think about it correctly. No jargon beyond what the question itself uses.`
     } else {
       systemPrompt = `You are Quanta AI, a quantum computing tutor. Student level: ${currentLevel}. Current topic: ${currentTopic}.${circuitDetailsStr}\nExplain concepts clearly, use LaTeX for equations, analyze active student circuits, and suggest fixes or optimizations when asked.`
     }

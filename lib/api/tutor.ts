@@ -186,7 +186,10 @@ export async function sendTutorChatMessage(
     results?: any
     qiskitCode?: string
   },
-  mode?: string
+  mode?: string,
+  questionText?: string,
+  chosenOptionText?: string,
+  correctOptionText?: string
 ): Promise<{ data: ChatMessage | null; error: Error | null }> {
   try {
     const res = await apiPost<ChatMessage>('tutor-chat', {
@@ -197,6 +200,9 @@ export async function sendTutorChatMessage(
       currentLevel,
       circuitContext,
       mode,
+      questionText,
+      chosenOptionText,
+      correctOptionText,
     })
 
     if (res.status === 'error' || !res.data) {
