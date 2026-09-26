@@ -62,6 +62,7 @@ export const config = {
     '/tutor/:path*',
     '/achievements/:path*',
     '/profile/:path*',
-    '/admin/:path*'
+    '/admin/:path*',
+    '/discussions/:path*',
   ],
 }

@@ -23,6 +23,7 @@ import {
   LogOut,
   Flame,
   Sparkles,
+  MessageSquare,
 } from 'lucide-react'
 import { useAuth } from '@/lib/auth-context'
 import { Starfield } from '@/components/starfield'
@@ -52,6 +53,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     { label: 'Quanta AI', href: '/tutor', icon: <Bot className="h-4 w-4" />, badge: 'AI' },
     { label: 'Quizzes', href: '/quiz/qubits', icon: <FileQuestion className="h-4 w-4" /> },
     { label: 'Achievements', href: '/achievements', icon: <Trophy className="h-4 w-4" /> },
+    { label: 'Community', href: '/discussions', icon: <MessageSquare className="h-4 w-4" />, badge: 'New' },
     { label: 'Profile', href: '/profile', icon: <User className="h-4 w-4" /> },
     { label: 'Admin Portal', href: '/admin', icon: <ShieldCheck className="h-4 w-4" />, adminOnly: true },
   ]
