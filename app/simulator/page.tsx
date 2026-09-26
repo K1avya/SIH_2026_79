@@ -37,7 +37,7 @@ import {
   simulateCircuitWithQiskit,
 } from '@/lib/api/circuits'
 import { generateQiskitAndQasmCode, parseQiskitOrQasmToCircuit } from '@/lib/qiskit-parser'
-import { lintCircuit } from '@/lib/api/tutor'
+import { lintCircuit, sendTutorChatMessage } from '@/lib/api/tutor'
 import { useAuth } from '@/lib/auth-context'
 import { AppShell } from '@/components/layout/AppShell'
 import { SimulatorIntro } from '@/components/simulator/SimulatorIntro'
@@ -222,6 +222,31 @@ export default function SimulatorPage() {
     } else {
       setLintFeedback(['✅ Circuit Check Passed: No gate conflicts or missing measurements detected! Clean circuit structure.'])
     }
+  }
+
+  // Analogy Engine state
+  const [analogyText, setAnalogyText] = useState<string | null>(null)
+  const [analogyLoading, setAnalogyLoading] = useState(false)
+
+  const handleExplainAnalogy = async () => {
+    setAnalogyLoading(true)
+    setAnalogyText(null)
+    const { data } = await sendTutorChatMessage(
+      user?.id ?? 'anonymous',
+      'Generate a real-world analogy for this circuit.',
+      'Quantum Circuit Analogy',
+      'Beginner',
+      undefined,
+      {
+        qubitCount: qubitsCount,
+        placedGates,
+        results: results ?? undefined,
+        qiskitCode: customCodeText,
+      },
+      'analogy'
+    )
+    setAnalogyText(data?.text ?? data?.content ?? null)
+    setAnalogyLoading(false)
   }
 
   return (
@@ -657,6 +682,35 @@ export default function SimulatorPage() {
                     </div>
                   ))}
                 </div>
+
+                {/* AI Analogy Engine */}
+                <button
+                  onClick={handleExplainAnalogy}
+                  disabled={analogyLoading}
+                  className="flex w-full items-center justify-center gap-2 rounded-2xl border border-cyan-500/30 bg-cyan-500/10 px-4 py-2.5 text-xs font-semibold text-cyan-300 transition-all hover:bg-cyan-500/20 disabled:opacity-50"
+                >
+                  {analogyLoading ? (
+                    <>
+                      <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                      <span>Generating analogy…</span>
+                    </>
+                  ) : (
+                    <>
+                      <Sparkles className="h-3.5 w-3.5 text-cyan-400" />
+                      <span>Explain Like I&apos;m New</span>
+                    </>
+                  )}
+                </button>
+
+                {analogyText && (
+                  <div className="rounded-2xl border border-cyan-500/30 bg-cyan-500/10 p-3 text-xs text-cyan-100 leading-relaxed">
+                    <p className="font-semibold text-cyan-300 mb-1 flex items-center gap-1.5">
+                      <Sparkles className="h-3 w-3" />
+                      Real-world analogy:
+                    </p>
+                    <p>{analogyText}</p>
+                  </div>
+                )}
               </div>
             ) : (
               <div className="p-6 text-center text-xs text-[var(--q-muted)] border rounded-2xl" style={{ borderColor: 'var(--q-line)' }}>
