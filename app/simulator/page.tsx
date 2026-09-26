@@ -686,7 +686,7 @@ export default function SimulatorPage() {
                 {/* AI Analogy Engine */}
                 <button
                   onClick={handleExplainAnalogy}
-                  disabled={analogyLoading}
+                  disabled={analogyLoading || placedGates.length === 0}
                   className="flex w-full items-center justify-center gap-2 rounded-2xl border border-cyan-500/30 bg-cyan-500/10 px-4 py-2.5 text-xs font-semibold text-cyan-300 transition-all hover:bg-cyan-500/20 disabled:opacity-50"
                 >
                   {analogyLoading ? (
